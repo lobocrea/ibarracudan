@@ -4,6 +4,7 @@ import type { Order } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Package } from 'lucide-react';
+import { toDate } from 'date-fns';
 
 interface InvoiceProps {
     order: Order;
@@ -20,7 +21,8 @@ export function Invoice({ order }: InvoiceProps) {
     };
     
     const formatDate = (dateString: string) => {
-        return new Date(dateString).toLocaleDateString('es-ES', {
+        const date = toDate(dateString);
+        return date.toLocaleDateString('es-ES', {
             year: 'numeric',
             month: 'long',
             day: 'numeric',

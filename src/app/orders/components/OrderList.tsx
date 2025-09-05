@@ -27,7 +27,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { CreateOrderDialog } from './CreateOrderDialog';
 import type { Order, Product } from '@/lib/types';
-import { format } from 'date-fns';
+import { format, toDate } from 'date-fns';
 import { es } from 'date-fns/locale';
 import {
   Dialog,
@@ -50,7 +50,9 @@ export function OrderList({ orders, inventory }: { orders: Order[], inventory: P
   };
   
   const formatDate = (dateString: string) => {
-    return format(new Date(dateString), "dd MMM, yyyy 'a las' HH:mm", { locale: es });
+    // toDate ensures the string is parsed correctly, avoiding timezone issues
+    const date = toDate(dateString);
+    return format(date, "dd MMM, yyyy 'a las' HH:mm", { locale: es });
   };
 
   const handleViewDetails = (order: Order) => {
