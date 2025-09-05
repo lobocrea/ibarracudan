@@ -30,31 +30,43 @@ async function getDashboardData() {
 
     const { data: ordersData, error: ordersError } = await supabase
         .from('pedidos')
-        .select('*, items_pedido(*, productos(buy_price))')
+        .select('*, items_pedido(*, productos(buy_price, sell_price, code, id))')
         .order('created_at', { ascending: false });
 
     if (productsError || ordersError) {
         console.error('Error fetching dashboard data:', productsError || ordersError);
-        return { products: [], orders: [], lowStockProducts: [], recentSales: [] };
+        return { products: [], orders: [], lowStockProducts: [], recentSales: [], totalRevenue: 0, totalCost: 0 };
     }
 
-    const orders = ordersData as (Order & { items_pedido: { quantity: number, productos: { buy_price: number } }[] })[];
+    const typedOrders = (ordersData || []) as Order[];
     const lowStockProducts = (products || []).filter(p => p.quantity < 10);
     
-    const recentSales = (orders || [])
+    const recentSales = typedOrders
         .flatMap(order => 
             order.items_pedido.map(item => ({
-                ...item,
-                product_id: (item as any).producto_id,
+                productCode: item.productos.code,
+                productId: item.productos.id,
+                quantitySold: item.quantity,
             }))
         )
-        .slice(0, 5); // Get last 5 sold items
+        .slice(0, 5); 
+
+    const totalRevenue = typedOrders.reduce((sum, order) => sum + (order.total || 0), 0);
+    
+    const totalCost = typedOrders.reduce((sum, order) => {
+        return sum + order.items_pedido.reduce((itemSum, item) => {
+            const buyPrice = item.productos?.buy_price ?? 0;
+            return itemSum + (buyPrice * item.quantity);
+        }, 0);
+    }, 0);
 
     return {
         products: products || [],
-        orders: orders || [],
+        orders: typedOrders || [],
         lowStockProducts,
         recentSales,
+        totalRevenue,
+        totalCost,
     };
 }
 
@@ -67,14 +79,8 @@ export default async function DashboardPage() {
     redirect('/');
   }
 
-  const { products, orders, lowStockProducts, recentSales } = await getDashboardData();
+  const { products, lowStockProducts, recentSales, totalRevenue, totalCost } = await getDashboardData();
   
-  const totalRevenue = orders.reduce((sum, order) => sum + (order.total || 0), 0);
-  const totalCost = orders.reduce((sum, order) => {
-    return sum + order.items_pedido.reduce((itemSum, item) => {
-        return itemSum + (item.productos.buy_price * item.quantity);
-    }, 0);
-  }, 0);
   const totalProfit = totalRevenue - totalCost;
   const inventoryValue = products.reduce((sum, product) => sum + (product.buy_price * product.quantity), 0);
   
@@ -188,11 +194,11 @@ export default async function DashboardPage() {
                         </TableHeader>
                         <TableBody>
                              {recentSales.length > 0 ? recentSales.map((item, index) => {
-                                const product = getProductById((item as any).producto_id);
+                                const product = getProductById(item.productId);
                                 return product ? (
-                                    <TableRow key={`${(item as any).id}-${index}`}>
-                                        <TableCell>{product.code}</TableCell>
-                                        <TableCell className="text-right">{item.quantity}</TableCell>
+                                    <TableRow key={`${item.productId}-${index}`}>
+                                        <TableCell>{item.productCode}</TableCell>
+                                        <TableCell className="text-right">{item.quantitySold}</TableCell>
                                         <TableCell className="text-right">
                                             <Badge variant={product.quantity < 10 ? 'destructive' : 'outline'}>
                                                 {product.quantity}
@@ -214,3 +220,5 @@ export default async function DashboardPage() {
     </div>
   );
 }
+
+    

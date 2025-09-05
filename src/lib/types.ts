@@ -31,7 +31,12 @@ export type OrderItemDetail = {
   quantity: number;
   sell_price: number;
   productos: {
+    id: string;
     code: string;
     tipo: string | null;
+    buy_price: number;
+    sell_price: number;
   };
 };
+
+    
