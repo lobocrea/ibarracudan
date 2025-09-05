@@ -33,6 +33,7 @@ export async function addProduct(formData: FormData) {
   }
 
   revalidatePath('/inventory');
+  revalidatePath('/dashboard');
   return { success: true };
 }
 
@@ -55,10 +56,12 @@ export async function updateProduct(formData: FormData) {
   const { error } = await supabase.from('productos').update(productData).eq('id', id);
 
   if (error) {
+    console.error('Update error:', error);
     return { error: error.message };
   }
 
   revalidatePath('/inventory');
+  revalidatePath('/dashboard');
   return { success: true };
 }
 
@@ -75,5 +78,6 @@ export async function deleteProduct(productId: string) {
   }
 
   revalidatePath('/inventory');
+  revalidatePath('/dashboard');
   return { success: true };
 }
