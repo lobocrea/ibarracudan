@@ -29,7 +29,6 @@ import type { Product } from '@/lib/types';
 const productFormSchema = z.object({
   id: z.string().optional(),
   code: z.string().min(1, 'Code is required'),
-  type: z.string().min(1, 'Type is required'),
   quantity: z.coerce.number().int().min(0, 'Quantity must be a non-negative integer'),
   buyPrice: z.coerce.number().min(0, 'Buy price must be non-negative'),
   sellPrice: z.coerce.number().min(0, 'Sell price must be non-negative'),
@@ -49,7 +48,6 @@ export function ProductDialog({ isOpen, setIsOpen, product }: ProductDialogProps
     resolver: zodResolver(productFormSchema),
     defaultValues: {
       code: '',
-      type: '',
       quantity: 0,
       buyPrice: 0,
       sellPrice: 0,
@@ -64,7 +62,6 @@ export function ProductDialog({ isOpen, setIsOpen, product }: ProductDialogProps
         form.reset({
           id: undefined,
           code: '',
-          type: '',
           quantity: 0,
           buyPrice: 0,
           sellPrice: 0,
@@ -119,19 +116,6 @@ export function ProductDialog({ isOpen, setIsOpen, product }: ProductDialogProps
                   <FormLabel>Code</FormLabel>
                   <FormControl>
                     <Input placeholder="PROD001" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="type"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Type</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Electronics" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

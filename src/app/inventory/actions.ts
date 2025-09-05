@@ -8,7 +8,6 @@ import type { Product } from '@/lib/types';
 const productSchema = z.object({
   id: z.string().optional(),
   code: z.string().min(1, 'Code is required'),
-  type: z.string().min(1, 'Type is required'),
   quantity: z.coerce.number().min(0, 'Quantity must be non-negative'),
   buyPrice: z.coerce.number().min(0, 'Buy price must be non-negative'),
   sellPrice: z.coerce.number().min(0, 'Sell price must be non-negative'),
@@ -27,7 +26,6 @@ export async function addProduct(formData: FormData) {
   const newProduct: Product = {
     ...validatedFields.data,
     id: new Date().getTime().toString(),
-    image: `https://picsum.photos/400/400?random=${Math.random()}`,
   };
 
   await saveInventory([newProduct, ...inventory]);

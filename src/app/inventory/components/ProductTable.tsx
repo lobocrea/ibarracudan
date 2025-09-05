@@ -1,7 +1,6 @@
 'use client';
 
 import * as React from 'react';
-import Image from 'next/image';
 import {
   Table,
   TableBody,
@@ -72,9 +71,7 @@ export function ProductTable({ products }: { products: Product[] }) {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="hidden w-[100px] sm:table-cell">Image</TableHead>
                 <TableHead>Code</TableHead>
-                <TableHead>Type</TableHead>
                 <TableHead className="text-right">Quantity</TableHead>
                 <TableHead className="text-right">Buy Price</TableHead>
                 <TableHead className="text-right">Sell Price</TableHead>
@@ -87,18 +84,7 @@ export function ProductTable({ products }: { products: Product[] }) {
               {products.length > 0 ? (
                 products.map((product) => (
                   <TableRow key={product.id}>
-                    <TableCell className="hidden sm:table-cell">
-                      <Image
-                        alt="Product image"
-                        className="aspect-square rounded-md object-cover"
-                        data-ai-hint="product photo"
-                        height="64"
-                        src={product.image}
-                        width="64"
-                      />
-                    </TableCell>
                     <TableCell className="font-medium">{product.code}</TableCell>
-                    <TableCell>{product.type}</TableCell>
                     <TableCell className="text-right">{product.quantity}</TableCell>
                     <TableCell className="text-right">{formatCurrency(product.buyPrice)}</TableCell>
                     <TableCell className="text-right">{formatCurrency(product.sellPrice)}</TableCell>
@@ -120,7 +106,7 @@ export function ProductTable({ products }: { products: Product[] }) {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={7} className="h-24 text-center">
+                  <TableCell colSpan={5} className="h-24 text-center">
                     No products found. Add a new one to get started.
                   </TableCell>
                 </TableRow>
