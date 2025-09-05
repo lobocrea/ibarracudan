@@ -56,17 +56,16 @@ export async function updateSession(request: NextRequest) {
   )
 
   const { data: { user } } = await supabase.auth.getUser()
-  const isPublicRoute = request.nextUrl.pathname === '/';
-  
-  // Cualquier ruta que no sea la de login es considerada protegida
-  const isProtectedRoute = !isPublicRoute;
 
-  // Si no hay usuario y se intenta acceder a una ruta protegida, redirigir a login
-  if (!user && isProtectedRoute) {
+  const publicRoutes = ['/'];
+  const isPublicRoute = publicRoutes.includes(request.nextUrl.pathname);
+
+  // Si no hay usuario y la ruta no es pública, redirigir a login
+  if (!user && !isPublicRoute) {
     return NextResponse.redirect(new URL('/', request.url))
   }
 
-  // Si hay usuario y se intenta acceder a la página de login, redirigir al inventario
+  // Si hay usuario y se intenta acceder a una ruta pública (como login), redirigir al inventario
   if (user && isPublicRoute) {
     return NextResponse.redirect(new URL('/inventory', request.url));
   }

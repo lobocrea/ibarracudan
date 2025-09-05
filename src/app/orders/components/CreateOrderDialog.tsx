@@ -216,7 +216,7 @@ export function CreateOrderDialog({ isOpen, setIsOpen, inventory }: CreateOrderD
                         })}
                         </div>
                          {form.formState.errors.items && (
-                             <p className="text-sm font-medium text-destructive mt-2">{form.formState.errors.items.message as string}</p>
+                             <p className="text-sm font-medium text-destructive mt-2">{typeof form.formState.errors.items === 'string' ? form.formState.errors.items : form.formState.errors.items.message}</p>
                         )}
                     </div>
                     
