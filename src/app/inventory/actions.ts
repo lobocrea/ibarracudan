@@ -25,12 +25,14 @@ export async function addProduct(data: unknown) {
   }
   
   const supabase = createClient();
+  // Excluimos 'id' porque es autogenerado por la BD al insertar
   const { id, ...productData } = validatedFields.data;
 
   const { error } = await supabase.from('productos').insert(productData);
   
   if (error) {
-    return { error: error.message };
+    console.error('Add product error:', error);
+    return { error: `Error al añadir producto: ${error.message}` };
   }
 
   revalidatePath('/inventory');
@@ -50,15 +52,16 @@ export async function updateProduct(data: unknown) {
   const { id, ...productData } = validatedFields.data;
 
   if (!id) {
-    return { error: 'Falta el ID del producto' };
+    return { error: 'Falta el ID del producto para actualizar.' };
   }
 
   const supabase = createClient();
+  // Usamos el 'id' para la condición 'eq' y 'productData' para los valores a actualizar
   const { error } = await supabase.from('productos').update(productData).eq('id', id);
 
   if (error) {
     console.error('Update error:', error);
-    return { error: error.message };
+    return { error: `Error al actualizar producto: ${error.message}` };
   }
 
   revalidatePath('/inventory');
