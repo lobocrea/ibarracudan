@@ -1,97 +1,87 @@
 -- Configuración inicial completa para la base de datos de Supabase
+-- Versión corregida para ser idempotente y evitar errores de existencia.
 
--- Eliminar funciones y tablas existentes en el orden correcto para evitar errores de dependencia
-DROP FUNCTION IF EXISTS public.handle_new_order;
-DROP TABLE IF EXISTS "notas_entrega" CASCADE;
-DROP TABLE IF EXISTS "items_pedido" CASCADE;
-DROP TABLE IF EXISTS "pedidos" CASCADE;
-DROP TABLE IF EXISTS "productos" CASCADE;
+-- 1. Eliminar políticas existentes en el orden correcto
+-- Políticas para la tabla de items_pedido
+DROP POLICY IF EXISTS "Enable read access for users who own the order" ON "items_pedido";
+DROP POLICY IF EXISTS "Enable insert for authenticated users" ON "items_pedido";
 
--- Eliminar políticas de seguridad si existen
+-- Políticas para la tabla de pedidos
+DROP POLICY IF EXISTS "Enable read access for own orders" ON "pedidos";
+DROP POLICY IF EXISTS "Enable insert for authenticated users" ON "pedidos";
+
+-- Políticas para la tabla de productos
 DROP POLICY IF EXISTS "Enable read access for all users" ON "productos";
 DROP POLICY IF EXISTS "Enable insert for authenticated users" ON "productos";
 DROP POLICY IF EXISTS "Enable update for authenticated users" ON "productos";
 DROP POLICY IF EXISTS "Enable delete for authenticated users" ON "productos";
 
-DROP POLICY IF EXISTS "Enable read access for own orders" ON "pedidos";
-DROP POLICY IF EXISTS "Enable insert for authenticated users" ON "pedidos";
+-- 2. Eliminar funciones existentes
+DROP FUNCTION IF EXISTS public.handle_new_order(text, jsonb);
 
-DROP POLICY IF EXISTS "Enable read access for users who own the order" ON "items_pedido";
-DROP POLICY IF EXISTS "Enable insert for authenticated users" ON "items_pedido";
+-- 3. Eliminar tablas existentes en orden de dependencia inversa
+-- La tabla `notas_entrega` depende de `pedidos`
+DROP TABLE IF EXISTS "notas_entrega" CASCADE;
+-- La tabla `items_pedido` depende de `pedidos` y `productos`
+DROP TABLE IF EXISTS "items_pedido" CASCADE;
+-- La tabla `pedidos` depende de `auth.users`
+DROP TABLE IF EXISTS "pedidos" CASCADE;
+-- La tabla `productos` no tiene dependencias salientes
+DROP TABLE IF EXISTS "productos" CASCADE;
 
 
--- 1. Tabla de Productos
+-- 4. Crear la tabla de Productos
 CREATE TABLE "productos" (
     "id" uuid DEFAULT gen_random_uuid() PRIMARY KEY,
-    "code" text NOT NULL,
+    "code" text NOT NULL UNIQUE,
     "tipo" text,
     "quantity" integer NOT NULL DEFAULT 0,
     "buy_price" numeric NOT NULL DEFAULT 0,
     "sell_price" numeric NOT NULL DEFAULT 0
 );
+COMMENT ON TABLE "productos" IS 'Almacena los productos del inventario.';
 
--- Habilitar RLS para la tabla de productos
+-- Habilitar RLS y crear políticas para la tabla de productos
 ALTER TABLE "productos" ENABLE ROW LEVEL SECURITY;
-
--- Políticas para la tabla de productos
-CREATE POLICY "Enable read access for all users" ON "productos"
-FOR SELECT TO public USING (true);
-
-CREATE POLICY "Enable insert for authenticated users" ON "productos"
-FOR INSERT TO authenticated WITH CHECK (true);
-
-CREATE POLICY "Enable update for authenticated users" ON "productos"
-FOR UPDATE TO authenticated USING (true) WITH CHECK (true);
-
-CREATE POLICY "Enable delete for authenticated users" ON "productos"
-FOR DELETE TO authenticated USING (true);
+CREATE POLICY "Enable read access for all users" ON "productos" FOR SELECT TO public USING (true);
+CREATE POLICY "Enable insert for authenticated users" ON "productos" FOR INSERT TO authenticated WITH CHECK (true);
+CREATE POLICY "Enable update for authenticated users" ON "productos" FOR UPDATE TO authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Enable delete for authenticated users" ON "productos" FOR DELETE TO authenticated USING (true);
 
 
--- 2. Tabla de Pedidos
+-- 5. Crear la tabla de Pedidos
 CREATE TABLE "pedidos" (
     "id" uuid DEFAULT gen_random_uuid() PRIMARY KEY,
     "created_at" timestamp with time zone DEFAULT now() NOT NULL,
     "client_name" text,
     "total" numeric,
-    "user_id" uuid DEFAULT auth.uid() REFERENCES auth.users(id)
+    "user_id" uuid DEFAULT auth.uid() REFERENCES auth.users(id) ON DELETE SET NULL
 );
+COMMENT ON TABLE "pedidos" IS 'Almacena la cabecera de los pedidos de clientes.';
 
--- Habilitar RLS para la tabla de pedidos
+-- Habilitar RLS y crear políticas para la tabla de pedidos
 ALTER TABLE "pedidos" ENABLE ROW LEVEL SECURITY;
-
--- Políticas para la tabla de pedidos
-CREATE POLICY "Enable read access for own orders" ON "pedidos"
-FOR SELECT TO authenticated USING (auth.uid() = user_id);
-
-CREATE POLICY "Enable insert for authenticated users" ON "pedidos"
-FOR INSERT TO authenticated WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Enable read access for own orders" ON "pedidos" FOR SELECT TO authenticated USING (auth.uid() = user_id);
+CREATE POLICY "Enable insert for authenticated users" ON "pedidos" FOR INSERT TO authenticated WITH CHECK (auth.uid() = user_id);
 
 
--- 3. Tabla de Items del Pedido (tabla intermedia)
+-- 6. Crear la tabla de Items del Pedido (tabla intermedia)
 CREATE TABLE "items_pedido" (
     "id" uuid DEFAULT gen_random_uuid() PRIMARY KEY,
     "pedido_id" uuid NOT NULL REFERENCES "pedidos"(id) ON DELETE CASCADE,
-    "producto_id" uuid NOT NULL REFERENCES "productos"(id),
-    "quantity" integer NOT NULL,
+    "producto_id" uuid NOT NULL REFERENCES "productos"(id) ON DELETE RESTRICT,
+    "quantity" integer NOT NULL CHECK (quantity > 0),
     "sell_price" numeric NOT NULL
 );
+COMMENT ON TABLE "items_pedido" IS 'Almacena los detalles o líneas de cada pedido.';
 
--- Habilitar RLS para la tabla de items_pedido
+-- Habilitar RLS y crear políticas para la tabla de items_pedido
 ALTER TABLE "items_pedido" ENABLE ROW LEVEL SECURITY;
-
--- Políticas para la tabla de items_pedido
-CREATE POLICY "Enable read access for users who own the order" ON "items_pedido"
-FOR SELECT TO authenticated USING (
-  (SELECT user_id FROM pedidos WHERE id = pedido_id) = auth.uid()
-);
-
-CREATE POLICY "Enable insert for authenticated users" ON "items_pedido"
-FOR INSERT TO authenticated WITH CHECK (
-  (SELECT user_id FROM pedidos WHERE id = pedido_id) = auth.uid()
-);
+CREATE POLICY "Enable read access for users who own the order" ON "items_pedido" FOR SELECT TO authenticated USING ((SELECT user_id FROM pedidos WHERE id = pedido_id) = auth.uid());
+CREATE POLICY "Enable insert for authenticated users" ON "items_pedido" FOR INSERT TO authenticated WITH CHECK ((SELECT user_id FROM pedidos WHERE id = pedido_id) = auth.uid());
 
 
--- 4. Función para crear un nuevo pedido y actualizar el inventario
+-- 7. Crear la función para manejar nuevos pedidos
 CREATE OR REPLACE FUNCTION public.handle_new_order(
   client_name text,
   order_items jsonb
@@ -99,6 +89,7 @@ CREATE OR REPLACE FUNCTION public.handle_new_order(
 RETURNS uuid
 LANGUAGE plpgsql
 SECURITY DEFINER
+SET search_path = public
 AS $$
 DECLARE
   new_order_id uuid;
@@ -107,51 +98,57 @@ DECLARE
   product_stock int;
   product_sell_price numeric;
 BEGIN
-  -- Calcular el total del pedido
+  -- Iterar sobre los items para calcular el total y validar stock
   FOR item IN SELECT * FROM jsonb_to_recordset(order_items) AS x(producto_id uuid, quantity int)
   LOOP
-    SELECT p.sell_price INTO product_sell_price
+    -- Obtener precio de venta y stock actual del producto
+    SELECT p.sell_price, p.quantity INTO product_sell_price, product_stock
     FROM public.productos p WHERE p.id = item.producto_id;
+
+    -- Validar si el producto existe
+    IF NOT FOUND THEN
+      RAISE EXCEPTION 'Producto con ID % no encontrado.', item.producto_id;
+    END IF;
+
+    -- Validar stock
+    IF product_stock < item.quantity THEN
+      RAISE EXCEPTION 'Stock insuficiente para el producto %. Disponible: %, Solicitado: %', (SELECT code FROM productos WHERE id = item.producto_id), product_stock, item.quantity;
+    END IF;
     
+    -- Acumular el total del pedido
     order_total := order_total + (item.quantity * product_sell_price);
   END LOOP;
 
-  -- Crear el nuevo pedido
+  -- Crear el nuevo pedido en la tabla "pedidos"
   INSERT INTO public.pedidos (client_name, total, user_id)
   VALUES (client_name, order_total, auth.uid())
   RETURNING id INTO new_order_id;
 
-  -- Insertar los items del pedido y actualizar el stock
+  -- Insertar los items del pedido en "items_pedido" y actualizar el stock
   FOR item IN SELECT * FROM jsonb_to_recordset(order_items) AS x(producto_id uuid, quantity int)
   LOOP
-    -- Verificar stock antes de insertar
-    SELECT p.quantity, p.sell_price INTO product_stock, product_sell_price
+    -- Obtener el precio de venta (de nuevo para asegurar consistencia en el bucle)
+    SELECT p.sell_price INTO product_sell_price
     FROM public.productos p WHERE p.id = item.producto_id;
 
-    IF product_stock IS NULL THEN
-      RAISE EXCEPTION 'Producto con ID % no encontrado', item.producto_id;
-    END IF;
-
-    IF product_stock < item.quantity THEN
-      RAISE EXCEPTION 'Stock insuficiente para el producto ID %. Disponible: %, Solicitado: %', item.producto_id, product_stock, item.quantity;
-    END IF;
-
-    -- Insertar item en la tabla items_pedido
+    -- Insertar el item en la tabla "items_pedido"
     INSERT INTO public.items_pedido (pedido_id, producto_id, quantity, sell_price)
     VALUES (new_order_id, item.producto_id, item.quantity, product_sell_price);
 
-    -- Actualizar el inventario
+    -- Actualizar el inventario de la tabla "productos"
     UPDATE public.productos
     SET quantity = quantity - item.quantity
     WHERE id = item.producto_id;
   END LOOP;
 
+  -- Devolver el ID del nuevo pedido creado
   RETURN new_order_id;
 END;
 $$;
 
 
--- 5. Insertar los datos de los productos
+-- 8. Insertar los datos iniciales de los productos
+-- Se usa ON CONFLICT para evitar errores si los códigos de producto ya existen.
 INSERT INTO "productos" ("code", "tipo", "quantity", "buy_price", "sell_price") VALUES
 ('CT-500 1H', 'LCL240-13 ( 500 mcm )', 100, 10, 20),
 ('CT-2 1H', 'LCL35-12 (2 AWG)', 100, 10, 20),
@@ -198,4 +195,5 @@ INSERT INTO "productos" ("code", "tipo", "quantity", "buy_price", "sell_price") 
 ('CTC-500', 'YAL240 (500MCM)', 100, 10, 20),
 ('PTNB 25-15', '(AWG 4)', 100, 10, 20),
 ('PTNB 35-20', '(AWG 2)', 100, 10, 20),
-('CT-3/0 2H', 'TTL95-12 (3/0 AWG)', 100, 10, 20);
+('CT-3/0 2H', 'TTL95-12 (3/0 AWG)', 100, 10, 20)
+ON CONFLICT (code) DO NOTHING;
