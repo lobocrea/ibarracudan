@@ -1,0 +1,47 @@
+[
+  {
+    "id": "1",
+    "code": "PROD001",
+    "type": "Electronics",
+    "quantity": 50,
+    "buyPrice": 150.00,
+    "sellPrice": 299.99,
+    "image": "https://picsum.photos/400/400?random=1"
+  },
+  {
+    "id": "2",
+    "code": "PROD002",
+    "type": "Books",
+    "quantity": 120,
+    "buyPrice": 10.50,
+    "sellPrice": 22.95,
+    "image": "https://picsum.photos/400/400?random=2"
+  },
+  {
+    "id": "3",
+    "code": "PROD003",
+    "type": "Clothing",
+    "quantity": 200,
+    "buyPrice": 25.00,
+    "sellPrice": 49.99,
+    "image": "https://picsum.photos/400/400?random=3"
+  },
+  {
+    "id": "4",
+    "code": "PROD004",
+    "type": "Home Goods",
+    "quantity": 75,
+    "buyPrice": 45.75,
+    "sellPrice": 89.99,
+    "image": "https://picsum.photos/400/400?random=4"
+  },
+  {
+    "id": "5",
+    "code": "PROD005",
+    "type": "Sports",
+    "quantity": 90,
+    "buyPrice": 80.00,
+    "sellPrice": 149.95,
+    "image": "https://picsum.photos/400/400?random=5"
+  }
+]
