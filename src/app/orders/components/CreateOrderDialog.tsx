@@ -35,7 +35,7 @@ import { PlusCircle, Trash2 } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 const orderItemSchema = z.object({
-  producto_id: z.string().uuid().min(1),
+  producto_id: z.string().uuid("Selecciona un producto válido."),
   quantity: z.coerce.number().int().min(1, "Mínimo 1"),
   sell_price: z.coerce.number(),
   stock: z.coerce.number(),
@@ -64,7 +64,7 @@ export function CreateOrderDialog({ isOpen, setIsOpen, inventory }: CreateOrderD
     },
   });
 
-  const { fields, append, remove } = useFieldArray({
+  const { fields, append, remove, update } = useFieldArray({
     control: form.control,
     name: "items"
   });
@@ -151,9 +151,6 @@ export function CreateOrderDialog({ isOpen, setIsOpen, inventory }: CreateOrderD
                         <div className="space-y-4 mt-2">
                         {fields.map((field, index) => {
                            const currentProductInForm = form.watch(`items.${index}`);
-                           const currentProductInInventory = inventory.find(p => p.id === currentProductInForm.producto_id);
-                           const maxQuantity = currentProductInInventory ? currentProductInInventory.quantity + (fields.find(f => f.producto_id === currentProductInForm.producto_id)?.quantity || 0) : 0;
-                           
                            return (
                             <div key={field.id} className="flex items-end gap-2 p-3 border rounded-lg">
                                 <Controller
@@ -166,13 +163,17 @@ export function CreateOrderDialog({ isOpen, setIsOpen, inventory }: CreateOrderD
                                             onValueChange={(value) => {
                                                 const product = inventory.find(p => p.id === value);
                                                 if(product) {
-                                                    form.setValue(`items.${index}.sell_price`, product.sell_price);
-                                                    form.setValue(`items.${index}.stock`, product.quantity);
-                                                    form.setValue(`items.${index}.quantity`, 1);
-                                                    selectField.onChange(value);
+                                                    // Update the entire field array item to ensure reactivity
+                                                    update(index, {
+                                                        ...form.getValues(`items.${index}`),
+                                                        producto_id: product.id,
+                                                        sell_price: product.sell_price,
+                                                        stock: product.quantity,
+                                                        quantity: 1, 
+                                                    });
                                                 }
                                             }}
-                                            defaultValue={selectField.value}
+                                            value={selectField.value}
                                         >
                                         <FormControl>
                                             <SelectTrigger>
@@ -182,7 +183,7 @@ export function CreateOrderDialog({ isOpen, setIsOpen, inventory }: CreateOrderD
                                         <SelectContent>
                                             {availableProducts.map(p => (
                                                 <SelectItem key={p.id} value={p.id} disabled={selectedProductIds.includes(p.id) && p.id !== field.producto_id}>
-                                                    {p.code} (Disp: {p.quantity}) - {p.sell_price.toFixed(2)}€
+                                                    {p.code} (Disp: {p.quantity}) - {p.sell_price.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}
                                                 </SelectItem>
                                             ))}
                                         </SelectContent>
@@ -214,7 +215,7 @@ export function CreateOrderDialog({ isOpen, setIsOpen, inventory }: CreateOrderD
                         })}
                         </div>
                          {form.formState.errors.items && (
-                            <p className="text-sm font-medium text-destructive mt-2">{typeof form.formState.errors.items === 'string' ? form.formState.errors.items : form.formState.errors.items.message}</p>
+                             <p className="text-sm font-medium text-destructive mt-2">{form.formState.errors.items.message}</p>
                         )}
                     </div>
                     

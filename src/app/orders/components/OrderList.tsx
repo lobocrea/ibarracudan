@@ -51,7 +51,7 @@ export function OrderList({ orders, inventory }: { orders: Order[], inventory: P
               <CardTitle>Pedidos</CardTitle>
               <CardDescription>Consulta y gestiona los pedidos de tus clientes.</CardDescription>
             </div>
-            <Button onClick={() => setDialogOpen(true)} disabled={inventory.length === 0}>
+            <Button onClick={() => setDialogOpen(true)} disabled={inventory.filter(p => p.quantity > 0).length === 0}>
               <PlusCircle className="mr-2 h-4 w-4" />
               Crear Pedido
             </Button>

@@ -28,13 +28,15 @@ export async function createOrder(data: { clientName: string, items: Omit<OrderI
   const { clientName, items } = validatedFields.data;
   const supabase = createClient();
   
+  // The 'handle_new_order' function now expects a JSONB object for order_items
   const { error } = await supabase.rpc('handle_new_order', {
     client_name: clientName,
     order_items: items,
   });
 
   if (error) {
-    return { error: error.message };
+    console.error('Error from RPC:', error);
+    return { error: `Error desde la base de datos: ${error.message}` };
   }
 
   revalidatePath('/orders');
