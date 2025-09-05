@@ -4,7 +4,8 @@ import type { Order } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Package } from 'lucide-react';
-import { toDate } from 'date-fns';
+import { formatInTimeZone } from 'date-fns-tz';
+import { es } from 'date-fns/locale';
 
 interface InvoiceProps {
     order: Order;
@@ -21,12 +22,7 @@ export function Invoice({ order }: InvoiceProps) {
     };
     
     const formatDate = (dateString: string) => {
-        const date = toDate(dateString);
-        return date.toLocaleDateString('es-ES', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-        });
+        return formatInTimeZone(dateString, 'UTC', 'dd MMMM, yyyy', { locale: es });
     };
 
     const getOrderIdSuffix = (orderId: string) => {
