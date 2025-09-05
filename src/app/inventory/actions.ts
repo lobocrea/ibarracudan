@@ -101,3 +101,39 @@ export async function deleteProduct(productId: string) {
   revalidatePath('/dashboard');
   return { success: true };
 }
+
+
+const inventoryUpdateSchema = z.array(z.object({
+  code: z.string(),
+  quantity: z.coerce.number().int().min(0),
+}));
+
+export async function updateInventoryFromCSV(data: unknown) {
+  const validation = inventoryUpdateSchema.safeParse(data);
+
+  if (!validation.success) {
+    console.error('Invalid CSV data format:', validation.error.flatten().fieldErrors);
+    return { error: 'El formato de los datos del CSV es inválido.' };
+  }
+  
+  const supabase = createClient();
+  const productsToUpdate = validation.data;
+
+  console.log(`Iniciando actualización masiva de inventario para ${productsToUpdate.length} productos.`);
+
+  // Usamos 'upsert' para actualizar la cantidad de los productos existentes basándonos en el código.
+  // 'onConflict' especifica que 'code' es la columna que puede tener conflictos (duplicados).
+  const { data: updatedData, error } = await supabase
+    .from('productos')
+    .upsert(productsToUpdate, { onConflict: 'code', ignoreDuplicates: false });
+
+  if (error) {
+    console.error('Error de Supabase durante la actualización masiva:', error);
+    return { error: `Error al actualizar el inventario: ${error.message}` };
+  }
+  
+  console.log('Actualización masiva de inventario completada con éxito.', updatedData);
+  revalidatePath('/inventory');
+  revalidatePath('/dashboard');
+  return { success: true };
+}

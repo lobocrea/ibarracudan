@@ -10,7 +10,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { MoreHorizontal, PlusCircle } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, Upload } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -26,11 +26,13 @@ import {
 } from '@/components/ui/card';
 import { ProductDialog } from './ProductDialog';
 import { DeleteProductDialog } from './DeleteProductDialog';
+import { UpdateInventoryDialog } from './UpdateInventoryDialog';
 import type { Product } from '@/lib/types';
 
 export function ProductTable({ products }: { products: Product[] }) {
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
+  const [updateInventoryDialogOpen, setUpdateInventoryDialogOpen] = React.useState(false);
   const [selectedProduct, setSelectedProduct] = React.useState<Product | undefined>(undefined);
 
   const handleEdit = (product: Product) => {
@@ -47,6 +49,10 @@ export function ProductTable({ products }: { products: Product[] }) {
     setSelectedProduct(product);
     setDeleteDialogOpen(true);
   };
+
+  const handleOpenUpdateInventoryDialog = () => {
+    setUpdateInventoryDialogOpen(true);
+  };
   
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(amount);
@@ -56,15 +62,21 @@ export function ProductTable({ products }: { products: Product[] }) {
     <>
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-4">
             <div>
                 <CardTitle>Productos</CardTitle>
                 <CardDescription>Gestiona el inventario de tus productos.</CardDescription>
             </div>
-            <Button onClick={handleAddNew}>
-              <PlusCircle className="mr-2 h-4 w-4" />
-              Añadir Producto
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button onClick={handleOpenUpdateInventoryDialog} variant="outline">
+                <Upload className="mr-2 h-4 w-4" />
+                Importar CSV
+              </Button>
+              <Button onClick={handleAddNew}>
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Añadir Producto
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
@@ -122,6 +134,11 @@ export function ProductTable({ products }: { products: Product[] }) {
         isOpen={dialogOpen} 
         setIsOpen={setDialogOpen} 
         product={selectedProduct}
+      />
+
+      <UpdateInventoryDialog
+        isOpen={updateInventoryDialogOpen}
+        setIsOpen={setUpdateInventoryDialogOpen}
       />
       
       {selectedProduct && (
