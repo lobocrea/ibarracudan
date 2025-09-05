@@ -19,58 +19,62 @@ export async function addProduct(data: unknown) {
   const validatedFields = productSchema.safeParse(data);
 
   if (!validatedFields.success) {
+    console.error('Error de validación al añadir producto:', validatedFields.error.flatten().fieldErrors);
     return {
       errors: validatedFields.error.flatten().fieldErrors,
     };
   }
   
   const supabase = createClient();
-  // Excluimos 'id' porque es autogenerado por la BD al insertar
   const { id, ...productData } = validatedFields.data;
+  
+  console.log('Intentando añadir producto con datos:', productData);
 
   const { error } = await supabase.from('productos').insert(productData);
   
   if (error) {
-    console.error('Add product error:', error);
+    console.error('Error de Supabase al añadir producto:', error);
     return { error: `Error al añadir producto: ${error.message}` };
   }
-
+  
+  console.log('Producto añadido con éxito.');
   revalidatePath('/inventory');
   revalidatePath('/dashboard');
   return { success: true };
 }
 
 export async function updateProduct(data: unknown) {
-    // Primero, validamos la estructura general de los datos que vienen del formulario.
     const formValidation = productSchema.safeParse(data);
 
     if (!formValidation.success) {
+        console.error('Error de validación al actualizar:', formValidation.error.flatten().fieldErrors);
         return {
             errors: formValidation.error.flatten().fieldErrors,
+            message: 'Datos del formulario inválidos.'
         };
     }
 
-    // El ID viene del formulario y es crucial para la cláusula WHERE.
-    const { id } = formValidation.data;
+    const { id, ...productData } = formValidation.data;
 
     if (!id) {
+        console.error('Error crítico: Falta el ID del producto para actualizar.');
         return { error: 'Falta el ID del producto para actualizar.' };
     }
-
-    // Preparamos los datos para la actualización, excluyendo el ID del payload.
-    const { id: _, ...productData } = formValidation.data;
+    
+    console.log(`Intentando actualizar producto ID: ${id} con datos:`, productData);
 
     const supabase = createClient();
     const { error } = await supabase
         .from('productos')
-        .update(productData) // El objeto a actualizar no debe contener el ID.
-        .eq('id', id);      // El ID se usa aquí para identificar la fila.
+        .update(productData)
+        .eq('id', id);
 
     if (error) {
-        console.error('Update error:', error);
+        console.error(`Error de Supabase al actualizar producto ID ${id}:`, error);
         return { error: `Error al actualizar producto: ${error.message}` };
     }
 
+    console.log(`Producto ID: ${id} actualizado con éxito en la base de datos.`);
     revalidatePath('/inventory');
     revalidatePath('/dashboard');
     return { success: true };
@@ -79,16 +83,20 @@ export async function updateProduct(data: unknown) {
 
 export async function deleteProduct(productId: string) {
   if (!productId) {
+    console.error('Error: Se intentó eliminar un producto sin ID.');
     return { error: 'Falta el ID del producto' };
   }
   
+  console.log(`Intentando eliminar producto ID: ${productId}`);
   const supabase = createClient();
   const { error } = await supabase.from('productos').delete().eq('id', productId);
   
   if (error) {
+    console.error(`Error de Supabase al eliminar producto ID ${productId}:`, error);
     return { error: error.message };
   }
 
+  console.log(`Producto ID: ${productId} eliminado con éxito.`);
   revalidatePath('/inventory');
   revalidatePath('/dashboard');
   return { success: true };
