@@ -3,7 +3,6 @@ import { useEffect } from 'react';
 import type { Order } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { Package } from 'lucide-react';
 import { formatInTimeZone } from 'date-fns-tz';
 import { es } from 'date-fns/locale';
 
@@ -46,10 +45,9 @@ export function Invoice({ order }: InvoiceProps) {
                 <header className="flex justify-between items-start mb-10">
                     <div>
                         <div className="flex items-center gap-3 mb-2">
-                             <Package className="h-8 w-8 text-primary" />
-                             <h1 className="text-3xl font-bold text-primary">Ibarracudán</h1>
+                             <h1 className="text-3xl font-extrabold text-primary">Ibarracudán</h1>
                         </div>
-                        <p className="text-muted-foreground">San Diego, Zip Code 2006</p>
+                        <p className="text-muted-foreground">San Diego, 2006</p>
                     </div>
                     <div className="text-right">
                         <h2 className="text-3xl font-bold text-muted-foreground">NOTA DE ENTREGA</h2>
