@@ -10,7 +10,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, MoreHorizontal } from 'lucide-react';
+import { PlusCircle, MoreHorizontal, Printer } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -37,6 +37,7 @@ import {
   DialogDescription,
   DialogFooter
 } from '@/components/ui/dialog';
+import Link from 'next/link';
 
 
 export function OrderList({ orders, inventory }: { orders: Order[], inventory: Product[] }) {
@@ -112,6 +113,12 @@ export function OrderList({ orders, inventory }: { orders: Order[], inventory: P
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem onSelect={() => handleViewDetails(order)}>Ver Detalles</DropdownMenuItem>
+                          <DropdownMenuItem asChild>
+                            <Link href={`/orders/invoice/${order.id}`} target="_blank">
+                               <Printer className="mr-2 h-4 w-4" />
+                               Generar Nota
+                            </Link>
+                          </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
