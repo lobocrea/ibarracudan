@@ -4,6 +4,8 @@
 DROP TABLE IF EXISTS "items_pedido";
 DROP TABLE IF EXISTS "pedidos";
 DROP TABLE IF EXISTS "productos";
+
+-- Eliminar la función si existe para evitar conflictos de tipo de retorno
 DROP FUNCTION IF EXISTS public.handle_new_order(text,jsonb);
 
 -- 1. Tabla de Productos
@@ -55,10 +57,10 @@ CREATE TABLE "pedidos" (
 ALTER TABLE "pedidos" ENABLE ROW LEVEL SECURITY;
 
 -- Políticas para la tabla de pedidos
-CREATE POLICY "Enable read access for all users" ON "pedidos"
+CREATE POLICY "Enable read access for own orders" ON "pedidos"
 AS PERMISSIVE FOR SELECT
-TO public
-USING (true);
+TO authenticated
+USING (auth.uid() = user_id);
 
 CREATE POLICY "Enable insert for authenticated users" ON "pedidos"
 AS PERMISSIVE FOR INSERT
@@ -79,11 +81,12 @@ CREATE TABLE "items_pedido" (
 ALTER TABLE "items_pedido" ENABLE ROW LEVEL SECURITY;
 
 -- Políticas para la tabla de items_pedido
-CREATE POLICY "Enable read access for all users" ON "items_pedido"
+CREATE POLICY "Enable read access for users who own the order" ON "items_pedido"
 AS PERMISSIVE FOR SELECT
-TO public
-USING (true);
-
+TO authenticated
+USING (
+  (SELECT user_id FROM pedidos WHERE id = pedido_id) = auth.uid()
+);
 
 CREATE POLICY "Enable insert for authenticated users" ON "items_pedido"
 AS PERMISSIVE FOR INSERT
@@ -200,3 +203,5 @@ INSERT INTO "productos" ("code", "tipo", "quantity", "buy_price", "sell_price") 
 ('PTNB 25-15', '(AWG 4)', 100, 10, 20),
 ('PTNB 35-20', '(AWG 2)', 100, 10, 20),
 ('CT-3/0 2H', 'TTL95-12 (3/0 AWG)', 100, 10, 20);
+
+    
