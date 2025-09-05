@@ -1,15 +1,13 @@
 -- Configuración inicial completa para la base de datos de Supabase
 
--- Eliminar función si existe para evitar conflictos
+-- Eliminar funciones existentes
 DROP FUNCTION IF EXISTS public.handle_new_order;
 
 -- Eliminar tablas existentes en el orden correcto para evitar errores de dependencia
--- Usamos CASCADE para eliminar objetos dependientes, como la tabla notas_entrega.
-DROP TABLE IF EXISTS "items_pedido" CASCADE;
 DROP TABLE IF EXISTS "notas_entrega" CASCADE;
+DROP TABLE IF EXISTS "items_pedido" CASCADE;
 DROP TABLE IF EXISTS "pedidos" CASCADE;
 DROP TABLE IF EXISTS "productos" CASCADE;
-
 
 -- 1. Tabla de Productos
 CREATE TABLE "productos" (
@@ -25,22 +23,26 @@ CREATE TABLE "productos" (
 ALTER TABLE "productos" ENABLE ROW LEVEL SECURITY;
 
 -- Políticas para la tabla de productos
+DROP POLICY IF EXISTS "Enable read access for all users" ON "productos";
 CREATE POLICY "Enable read access for all users" ON "productos"
 AS PERMISSIVE FOR SELECT
 TO public
 USING (true);
 
+DROP POLICY IF EXISTS "Enable insert for authenticated users" ON "productos";
 CREATE POLICY "Enable insert for authenticated users" ON "productos"
 AS PERMISSIVE FOR INSERT
 TO authenticated
 WITH CHECK (true);
 
+DROP POLICY IF EXISTS "Enable update for authenticated users" ON "productos";
 CREATE POLICY "Enable update for authenticated users" ON "productos"
 AS PERMISSIVE FOR UPDATE
 TO authenticated
 USING (true)
 WITH CHECK (true);
 
+DROP POLICY IF EXISTS "Enable delete for authenticated users" ON "productos";
 CREATE POLICY "Enable delete for authenticated users" ON "productos"
 AS PERMISSIVE FOR DELETE
 TO authenticated
@@ -53,18 +55,20 @@ CREATE TABLE "pedidos" (
     "created_at" timestamp with time zone DEFAULT now() NOT NULL,
     "client_name" text,
     "total" numeric,
-    "user_id" uuid DEFAULT auth.uid() REFERENCES auth.users(id) ON DELETE SET NULL
+    "user_id" uuid DEFAULT auth.uid() REFERENCES auth.users(id) ON DELETE CASCADE
 );
 
 -- Habilitar RLS para la tabla de pedidos
 ALTER TABLE "pedidos" ENABLE ROW LEVEL SECURITY;
 
 -- Políticas para la tabla de pedidos
+DROP POLICY IF EXISTS "Enable read access for own orders" ON "pedidos";
 CREATE POLICY "Enable read access for own orders" ON "pedidos"
 AS PERMISSIVE FOR SELECT
 TO authenticated
 USING (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Enable insert for authenticated users" ON "pedidos";
 CREATE POLICY "Enable insert for authenticated users" ON "pedidos"
 AS PERMISSIVE FOR INSERT
 TO authenticated
@@ -84,6 +88,7 @@ CREATE TABLE "items_pedido" (
 ALTER TABLE "items_pedido" ENABLE ROW LEVEL SECURITY;
 
 -- Políticas para la tabla de items_pedido
+DROP POLICY IF EXISTS "Enable read access for users who own the order" ON "items_pedido";
 CREATE POLICY "Enable read access for users who own the order" ON "items_pedido"
 AS PERMISSIVE FOR SELECT
 TO authenticated
@@ -91,6 +96,7 @@ USING (
   (SELECT user_id FROM pedidos WHERE id = pedido_id) = auth.uid()
 );
 
+DROP POLICY IF EXISTS "Enable insert for authenticated users" ON "items_pedido";
 CREATE POLICY "Enable insert for authenticated users" ON "items_pedido"
 AS PERMISSIVE FOR INSERT
 TO authenticated
@@ -98,8 +104,32 @@ WITH CHECK (
   (SELECT user_id FROM pedidos WHERE id = pedido_id) = auth.uid()
 );
 
+-- 4. Tabla de Notas de Entrega
+CREATE TABLE "notas_entrega" (
+    "id" uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+    "pedido_id" uuid NOT NULL REFERENCES "pedidos"(id) ON DELETE CASCADE,
+    "created_at" timestamp with time zone DEFAULT now() NOT NULL,
+    "pdf_url" text,
+    "user_id" uuid DEFAULT auth.uid() REFERENCES auth.users(id) ON DELETE CASCADE
+);
 
--- 4. Función para crear un nuevo pedido y actualizar el inventario
+-- Habilitar RLS para la tabla de notas_entrega
+ALTER TABLE "notas_entrega" ENABLE ROW LEVEL SECURITY;
+
+-- Políticas para la tabla de notas_entrega
+DROP POLICY IF EXISTS "Enable read access for own delivery notes" ON "notas_entrega";
+CREATE POLICY "Enable read access for own delivery notes" ON "notas_entrega"
+AS PERMISSIVE FOR SELECT
+TO authenticated
+USING (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Enable insert for authenticated users on delivery notes" ON "notas_entrega";
+CREATE POLICY "Enable insert for authenticated users on delivery notes" ON "notas_entrega"
+AS PERMISSIVE FOR INSERT
+TO authenticated
+WITH CHECK (auth.uid() = user_id);
+
+-- 5. Función para crear un nuevo pedido y actualizar el inventario
 CREATE OR REPLACE FUNCTION public.handle_new_order(
   client_name text,
   order_items jsonb
@@ -158,55 +188,57 @@ BEGIN
 END;
 $$;
 
--- Permisos para la función
-GRANT EXECUTE ON FUNCTION public.handle_new_order(text, jsonb) TO authenticated;
-
-
--- 5. Insertar los datos de los productos
-INSERT INTO "productos" ("code", "tipo", "quantity", "buy_price", "sell_price") VALUES
-('CT-500 1H', 'LCL240-13 ( 500 mcm )', 100, 10, 20),
-('CT-2 1H', 'LCL35-12 (2 AWG)', 100, 10, 20),
-('CT-2/0 1H', 'LCL70-12 (2/0 AWG)', 100, 10, 20),
-('CT-4/0 1H', 'LCL120-13 (4/0 AWG)', 100, 10, 20),
-('CT-4 1H', 'LCL25-6 (4 AWG)', 100, 10, 20),
-('CT-8 1H', 'LCL10-6 (8 AWG)', 100, 10, 20),
-('CT-250 1H', 'LCL120-13 ( 250 mcm)', 100, 10, 20),
-('CT-6 1H', 'LCL16-6 (6 AWG)', 100, 10, 20),
-('CT-1/0 1H', 'LCL50-12 (1/0 AWG)', 100, 10, 20),
-('CT-350 1H', 'LCL185-13 ( 350 mcm)', 100, 10, 20),
-('CT-4/0 2H', 'TTL120-13 (4/0 AWG)', 100, 10, 20),
-('PTNB 10-12', '(AWG 8)', 100, 10, 20),
-('CT-500 2H', 'TTL240-13 ( 500 mcm)', 100, 10, 20),
-('PTNB 16-13', '(AWG 6)', 100, 10, 20),
-('CT-350 2H', 'TTL185-13 ( 350 mcm)', 100, 10, 20),
-('2-T', 'GTY35', 100, 10, 20),
-('CT-2/0 2H', 'TTL70-12 (2/0 AWG)', 100, 10, 20),
-('CT-250 2H', 'TTL120-13 ( 250 mcm)', 100, 10, 20),
-('CT-3/0 1H', 'LCL95-12 (3/0 AWG)', 100, 10, 20),
-('500-T', 'GTY240', 100, 10, 20),
-('CT-750 2H', 'TTL400-13 ( 750 mcm)', 100, 10, 20),
-('CT-1000 2H', 'TTL500-13 ( 1000 mcm)', 100, 10, 20),
-('6-T', 'GTY16', 100, 10, 20),
-('4-T', 'GTY25', 100, 10, 20),
-('CT-1/0 2H', 'TTL50-12 (1/0 AWG)', 100, 10, 20),
-('2/0-T', 'GTY70', 100, 10, 20),
-('1/0-T', 'GTY50', 100, 10, 20),
-('CT-2 2H', 'TTL35-12 (2 AWG)', 100, 10, 20),
-('250-T', 'GTY150', 100, 10, 20),
-('YQK-300', 'PRENSA YQK-300', 100, 10, 20),
-('350-T', 'GTY185', 100, 10, 20),
-('4/0-T', 'GTY120', 100, 10, 20),
-('8-T', 'GTY10', 100, 10, 20),
-('HX-50B', 'PRENSA HX-50B', 100, 10, 20),
-('HS-D1', 'PELA CABLE HS-D1', 100, 10, 20),
-('CT-750 1H', 'LCL400-13 ( 750 mcm)', 100, 10, 20),
-('J52', 'CORTA CABLE - J52', 100, 10, 20),
-('EB-630', 'Electric Hydraulic Crimping tool', 100, 10, 20),
-('CT-1000 1H', 'LCL500-13 ( 1000 mcm)', 100, 10, 20),
-('3/0-T', 'GTY95', 100, 10, 20),
-('SYK-15', 'PONCHADORA SYK-15', 100, 10, 20),
-('CTC-350', 'YAL185 (350MCM)', 100, 10, 20),
-('CTC-500', 'YAL240 (500MCM)', 100, 10, 20),
-('PTNB 25-15', '(AWG 4)', 100, 10, 20),
-('PTNB 35-20', '(AWG 2)', 100, 10, 20),
-('CT-3/0 2H', 'TTL95-12 (3/0 AWG)', 100, 10, 20);
+-- 6. Insertar los datos de los productos
+-- (Esta sección solo se ejecutará si la tabla productos está vacía)
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM productos) THEN
+    INSERT INTO "productos" ("code", "tipo", "quantity", "buy_price", "sell_price") VALUES
+    ('CT-500 1H', 'LCL240-13 ( 500 mcm )', 100, 10, 20),
+    ('CT-2 1H', 'LCL35-12 (2 AWG)', 100, 10, 20),
+    ('CT-2/0 1H', 'LCL70-12 (2/0 AWG)', 100, 10, 20),
+    ('CT-4/0 1H', 'LCL120-13 (4/0 AWG)', 100, 10, 20),
+    ('CT-4 1H', 'LCL25-6 (4 AWG)', 100, 10, 20),
+    ('CT-8 1H', 'LCL10-6 (8 AWG)', 100, 10, 20),
+    ('CT-250 1H', 'LCL120-13 ( 250 mcm)', 100, 10, 20),
+    ('CT-6 1H', 'LCL16-6 (6 AWG)', 100, 10, 20),
+    ('CT-1/0 1H', 'LCL50-12 (1/0 AWG)', 100, 10, 20),
+    ('CT-350 1H', 'LCL185-13 ( 350 mcm)', 100, 10, 20),
+    ('CT-4/0 2H', 'TTL120-13 (4/0 AWG)', 100, 10, 20),
+    ('PTNB 10-12', '(AWG 8)', 100, 10, 20),
+    ('CT-500 2H', 'TTL240-13 ( 500 mcm)', 100, 10, 20),
+    ('PTNB 16-13', '(AWG 6)', 100, 10, 20),
+    ('CT-350 2H', 'TTL185-13 ( 350 mcm)', 100, 10, 20),
+    ('2-T', 'GTY35', 100, 10, 20),
+    ('CT-2/0 2H', 'TTL70-12 (2/0 AWG)', 100, 10, 20),
+    ('CT-250 2H', 'TTL120-13 ( 250 mcm)', 100, 10, 20),
+    ('CT-3/0 1H', 'LCL95-12 (3/0 AWG)', 100, 10, 20),
+    ('500-T', 'GTY240', 100, 10, 20),
+    ('CT-750 2H', 'TTL400-13 ( 750 mcm)', 100, 10, 20),
+    ('CT-1000 2H', 'TTL500-13 ( 1000 mcm)', 100, 10, 20),
+    ('6-T', 'GTY16', 100, 10, 20),
+    ('4-T', 'GTY25', 100, 10, 20),
+    ('CT-1/0 2H', 'TTL50-12 (1/0 AWG)', 100, 10, 20),
+    ('2/0-T', 'GTY70', 100, 10, 20),
+    ('1/0-T', 'GTY50', 100, 10, 20),
+    ('CT-2 2H', 'TTL35-12 (2 AWG)', 100, 10, 20),
+    ('250-T', 'GTY150', 100, 10, 20),
+    ('YQK-300', 'PRENSA YQK-300', 100, 10, 20),
+    ('350-T', 'GTY185', 100, 10, 20),
+    ('4/0-T', 'GTY120', 100, 10, 20),
+    ('8-T', 'GTY10', 100, 10, 20),
+    ('HX-50B', 'PRENSA HX-50B', 100, 10, 20),
+    ('HS-D1', 'PELA CABLE HS-D1', 100, 10, 20),
+    ('CT-750 1H', 'LCL400-13 ( 750 mcm)', 100, 10, 20),
+    ('J52', 'CORTA CABLE - J52', 100, 10, 20),
+    ('EB-630', 'Electric Hydraulic Crimping tool', 100, 10, 20),
+    ('CT-1000 1H', 'LCL500-13 ( 1000 mcm)', 100, 10, 20),
+    ('3/0-T', 'GTY95', 100, 10, 20),
+    ('SYK-15', 'PONCHADORA SYK-15', 100, 10, 20),
+    ('CTC-350', 'YAL185 (350MCM)', 100, 10, 20),
+    ('CTC-500', 'YAL240 (500MCM)', 100, 10, 20),
+    ('PTNB 25-15', '(AWG 4)', 100, 10, 20),
+    ('PTNB 35-20', '(AWG 2)', 100, 10, 20),
+    ('CT-3/0 2H', 'TTL95-12 (3/0 AWG)', 100, 10, 20);
+  END IF;
+END $$;
