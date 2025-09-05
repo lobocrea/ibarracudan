@@ -141,8 +141,8 @@ export function OrderList({ orders, inventory }: { orders: Order[], inventory: P
             <DialogHeader>
               <DialogTitle>Detalles del Pedido #{getOrderIdSuffix(selectedOrder.id)}</DialogTitle>
               <DialogDescription>
-                <p>Cliente: {selectedOrder.client_name}</p>
-                <p>Fecha: {formatDate(selectedOrder.created_at)}</p>
+                <div>Cliente: {selectedOrder.client_name}</div>
+                <div>Fecha: {formatDate(selectedOrder.created_at)}</div>
               </DialogDescription>
             </DialogHeader>
             <div className="my-4">
