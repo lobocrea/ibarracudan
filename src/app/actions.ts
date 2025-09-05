@@ -23,13 +23,13 @@ export async function authenticate(
       });
       redirect('/inventory');
     } else {
-      return 'Invalid username or password.';
+      return 'Usuario o contraseña inválidos.';
     }
   } catch (error) {
     if (error instanceof Error && error.message.includes('NEXT_REDIRECT')) {
       throw error;
     }
     console.error(error);
-    return 'Something went wrong. Please try again.';
+    return 'Algo salió mal. Por favor, inténtalo de nuevo.';
   }
 }

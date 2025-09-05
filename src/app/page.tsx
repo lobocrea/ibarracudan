@@ -10,11 +10,11 @@ export default function LoginPage() {
             <Package className="h-10 w-10" />
           </div>
         </div>
-        <h1 className="text-3xl font-bold text-center mb-2 text-foreground">InventoryFlow</h1>
-        <p className="text-center text-muted-foreground mb-8">Welcome back. Please log in to your account.</p>
+        <h1 className="text-3xl font-bold text-center mb-2 text-foreground">FlujoDeInventario</h1>
+        <p className="text-center text-muted-foreground mb-8">Bienvenido de nuevo. Por favor, inicia sesión en tu cuenta.</p>
         <LoginForm />
         <p className="px-8 text-center text-sm text-muted-foreground mt-8">
-          Use "cesar" or "edilberto" as username and "123456789" as password.
+          Usa "cesar" o "edilberto" como nombre de usuario y "123456789" como contraseña.
         </p>
       </div>
     </div>

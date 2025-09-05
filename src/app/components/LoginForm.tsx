@@ -17,17 +17,17 @@ export function LoginForm() {
       <Card>
         <CardContent className="space-y-4 pt-6">
           <div className="space-y-2">
-            <Label htmlFor="username">Username</Label>
+            <Label htmlFor="username">Usuario</Label>
             <Input id="username" name="username" placeholder="cesar" required />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password">Contraseña</Label>
             <Input id="password" name="password" type="password" required />
           </div>
           {errorMessage && (
             <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
-              <AlertTitle>Login Failed</AlertTitle>
+              <AlertTitle>Error de inicio de sesión</AlertTitle>
               <AlertDescription>{errorMessage}</AlertDescription>
             </Alert>
           )}
@@ -44,7 +44,7 @@ function LoginButton() {
   const { pending } = useFormStatus();
   return (
     <Button className="w-full" aria-disabled={pending}>
-      {pending ? 'Logging in...' : 'Log In'}
+      {pending ? 'Iniciando sesión...' : 'Iniciar sesión'}
     </Button>
   );
 }

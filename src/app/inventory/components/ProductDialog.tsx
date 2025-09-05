@@ -28,10 +28,10 @@ import type { Product } from '@/lib/types';
 
 const productFormSchema = z.object({
   id: z.string().optional(),
-  code: z.string().min(1, 'Code is required'),
-  quantity: z.coerce.number().int().min(0, 'Quantity must be a non-negative integer'),
-  buyPrice: z.coerce.number().min(0, 'Buy price must be non-negative'),
-  sellPrice: z.coerce.number().min(0, 'Sell price must be non-negative'),
+  code: z.string().min(1, 'El código es obligatorio'),
+  quantity: z.coerce.number().int().min(0, 'La cantidad debe ser un entero no negativo'),
+  buyPrice: z.coerce.number().min(0, 'El precio de compra debe ser no negativo'),
+  sellPrice: z.coerce.number().min(0, 'El precio de venta debe ser no negativo'),
 });
 
 type ProductFormValues = z.infer<typeof productFormSchema>;
@@ -83,15 +83,15 @@ export function ProductDialog({ isOpen, setIsOpen, product }: ProductDialogProps
     
     if (result.success) {
       toast({
-        title: `Product ${product ? 'updated' : 'added'} successfully`,
-        description: `The product "${data.code}" has been saved.`,
+        title: `Producto ${product ? 'actualizado' : 'añadido'} con éxito`,
+        description: `El producto "${data.code}" ha sido guardado.`,
       });
       setIsOpen(false);
     } else {
       toast({
         variant: 'destructive',
-        title: 'An error occurred',
-        description: result.error || 'Please check the form and try again.',
+        title: 'Ocurrió un error',
+        description: result.error || 'Por favor, revisa el formulario e inténtalo de nuevo.',
       });
     }
   };
@@ -100,9 +100,9 @@ export function ProductDialog({ isOpen, setIsOpen, product }: ProductDialogProps
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>{product ? 'Edit Product' : 'Add New Product'}</DialogTitle>
+          <DialogTitle>{product ? 'Editar Producto' : 'Añadir Nuevo Producto'}</DialogTitle>
           <DialogDescription>
-            {product ? 'Update the details of your product.' : 'Fill in the details for the new product.'}
+            {product ? 'Actualiza los detalles de tu producto.' : 'Rellena los detalles del nuevo producto.'}
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -113,7 +113,7 @@ export function ProductDialog({ isOpen, setIsOpen, product }: ProductDialogProps
               name="code"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Code</FormLabel>
+                  <FormLabel>Código</FormLabel>
                   <FormControl>
                     <Input placeholder="PROD001" {...field} />
                   </FormControl>
@@ -126,7 +126,7 @@ export function ProductDialog({ isOpen, setIsOpen, product }: ProductDialogProps
               name="quantity"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Quantity</FormLabel>
+                  <FormLabel>Cantidad</FormLabel>
                   <FormControl>
                     <Input type="number" {...field} />
                   </FormControl>
@@ -139,7 +139,7 @@ export function ProductDialog({ isOpen, setIsOpen, product }: ProductDialogProps
               name="buyPrice"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Buy Price</FormLabel>
+                  <FormLabel>Precio de Compra</FormLabel>
                   <FormControl>
                     <Input type="number" step="0.01" {...field} />
                   </FormControl>
@@ -152,7 +152,7 @@ export function ProductDialog({ isOpen, setIsOpen, product }: ProductDialogProps
               name="sellPrice"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Sell Price</FormLabel>
+                  <FormLabel>Precio de Venta</FormLabel>
                   <FormControl>
                     <Input type="number" step="0.01" {...field} />
                   </FormControl>
@@ -161,9 +161,9 @@ export function ProductDialog({ isOpen, setIsOpen, product }: ProductDialogProps
               )}
             />
             <DialogFooter className="pt-4">
-              <Button type="button" variant="ghost" onClick={() => setIsOpen(false)}>Cancel</Button>
+              <Button type="button" variant="ghost" onClick={() => setIsOpen(false)}>Cancelar</Button>
               <Button type="submit" disabled={form.formState.isSubmitting}>
-                {form.formState.isSubmitting ? 'Saving...' : 'Save Product'}
+                {form.formState.isSubmitting ? 'Guardando...' : 'Guardar Producto'}
               </Button>
             </DialogFooter>
           </form>

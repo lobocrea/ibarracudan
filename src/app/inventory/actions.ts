@@ -7,10 +7,10 @@ import type { Product } from '@/lib/types';
 
 const productSchema = z.object({
   id: z.string().optional(),
-  code: z.string().min(1, 'Code is required'),
-  quantity: z.coerce.number().min(0, 'Quantity must be non-negative'),
-  buyPrice: z.coerce.number().min(0, 'Buy price must be non-negative'),
-  sellPrice: z.coerce.number().min(0, 'Sell price must be non-negative'),
+  code: z.string().min(1, 'El código es obligatorio'),
+  quantity: z.coerce.number().min(0, 'La cantidad debe ser no negativa'),
+  buyPrice: z.coerce.number().min(0, 'El precio de compra debe ser no negativo'),
+  sellPrice: z.coerce.number().min(0, 'El precio de venta debe ser no negativo'),
 });
 
 export async function addProduct(formData: FormData) {
@@ -45,14 +45,14 @@ export async function updateProduct(formData: FormData) {
   const { id, ...productData } = validatedFields.data;
 
   if (!id) {
-    return { error: 'Product ID is missing' };
+    return { error: 'Falta el ID del producto' };
   }
 
   const inventory = await getInventory();
   const productIndex = inventory.findIndex(p => p.id === id);
 
   if (productIndex === -1) {
-    return { error: 'Product not found' };
+    return { error: 'Producto no encontrado' };
   }
   
   const existingProduct = inventory[productIndex];
@@ -65,14 +65,14 @@ export async function updateProduct(formData: FormData) {
 
 export async function deleteProduct(productId: string) {
   if (!productId) {
-    return { error: 'Product ID is missing' };
+    return { error: 'Falta el ID del producto' };
   }
   
   const inventory = await getInventory();
   const updatedInventory = inventory.filter(p => p.id !== productId);
 
   if (inventory.length === updatedInventory.length) {
-     return { error: 'Product not found' };
+     return { error: 'Producto no encontrado' };
   }
 
   await saveInventory(updatedInventory);

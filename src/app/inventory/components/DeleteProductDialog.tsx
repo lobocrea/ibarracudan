@@ -30,14 +30,14 @@ export function DeleteProductDialog({ isOpen, setIsOpen, product }: DeleteProduc
     const result = await deleteProduct(product.id);
     if (result.success) {
       toast({
-        title: 'Product deleted successfully',
+        title: 'Producto eliminado con éxito',
       });
       setIsOpen(false);
     } else {
       toast({
         variant: 'destructive',
-        title: 'Failed to delete product',
-        description: result.error || 'Please try again.',
+        title: 'Error al eliminar el producto',
+        description: result.error || 'Por favor, inténtalo de nuevo.',
       });
     }
     setIsDeleting(false);
@@ -47,15 +47,15 @@ export function DeleteProductDialog({ isOpen, setIsOpen, product }: DeleteProduc
     <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Are you sure you want to delete this product?</AlertDialogTitle>
+          <AlertDialogTitle>¿Estás seguro de que quieres eliminar este producto?</AlertDialogTitle>
           <AlertDialogDescription>
-            This will permanently delete the product with code <span className="font-semibold">{product.code}</span>. This action cannot be undone.
+            Esto eliminará permanentemente el producto con el código <span className="font-semibold">{product.code}</span>. Esta acción no se puede deshacer.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogCancel>Cancelar</AlertDialogCancel>
           <AlertDialogAction onClick={handleDelete} disabled={isDeleting} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-            {isDeleting ? 'Deleting...' : 'Delete'}
+            {isDeleting ? 'Eliminando...' : 'Eliminar'}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

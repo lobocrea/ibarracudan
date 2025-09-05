@@ -49,7 +49,7 @@ export function ProductTable({ products }: { products: Product[] }) {
   };
   
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
+    return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(amount);
   };
 
   return (
@@ -58,12 +58,12 @@ export function ProductTable({ products }: { products: Product[] }) {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-                <CardTitle>Products</CardTitle>
-                <CardDescription>Manage your product inventory.</CardDescription>
+                <CardTitle>Productos</CardTitle>
+                <CardDescription>Gestiona el inventario de tus productos.</CardDescription>
             </div>
             <Button onClick={handleAddNew}>
               <PlusCircle className="mr-2 h-4 w-4" />
-              Add Product
+              Añadir Producto
             </Button>
           </div>
         </CardHeader>
@@ -71,12 +71,12 @@ export function ProductTable({ products }: { products: Product[] }) {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Code</TableHead>
-                <TableHead className="text-right">Quantity</TableHead>
-                <TableHead className="text-right">Buy Price</TableHead>
-                <TableHead className="text-right">Sell Price</TableHead>
+                <TableHead>Código</TableHead>
+                <TableHead className="text-right">Cantidad</TableHead>
+                <TableHead className="text-right">Precio de Compra</TableHead>
+                <TableHead className="text-right">Precio de Venta</TableHead>
                 <TableHead>
-                  <span className="sr-only">Actions</span>
+                  <span className="sr-only">Acciones</span>
                 </TableHead>
               </TableRow>
             </TableHeader>
@@ -93,12 +93,12 @@ export function ProductTable({ products }: { products: Product[] }) {
                         <DropdownMenuTrigger asChild>
                           <Button aria-haspopup="true" size="icon" variant="ghost">
                             <MoreHorizontal className="h-4 w-4" />
-                            <span className="sr-only">Toggle menu</span>
+                            <span className="sr-only">Alternar menú</span>
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem onSelect={() => handleEdit(product)}>Edit</DropdownMenuItem>
-                          <DropdownMenuItem onSelect={() => handleDelete(product)} className="text-destructive focus:bg-destructive/10 focus:text-destructive">Delete</DropdownMenuItem>
+                          <DropdownMenuItem onSelect={() => handleEdit(product)}>Editar</DropdownMenuItem>
+                          <DropdownMenuItem onSelect={() => handleDelete(product)} className="text-destructive focus:bg-destructive/10 focus:text-destructive">Eliminar</DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
@@ -107,7 +107,7 @@ export function ProductTable({ products }: { products: Product[] }) {
               ) : (
                 <TableRow>
                   <TableCell colSpan={5} className="h-24 text-center">
-                    No products found. Add a new one to get started.
+                    No se encontraron productos. Añade uno nuevo para empezar.
                   </TableCell>
                 </TableRow>
               )}
