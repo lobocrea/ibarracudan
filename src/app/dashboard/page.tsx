@@ -58,6 +58,7 @@ async function getDashboardData() {
     
     const totalCost = typedOrders.reduce((sum, order) => {
         return sum + order.items_pedido.reduce((itemSum, item) => {
+            // Asegurarse que item.productos existe antes de acceder a buy_price
             const buyPrice = item.productos?.buy_price ?? 0;
             return itemSum + (buyPrice * item.quantity);
         }, 0);
@@ -223,5 +224,3 @@ export default async function DashboardPage() {
     </div>
   );
 }
-
-    
