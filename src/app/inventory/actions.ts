@@ -121,18 +121,31 @@ export async function updateInventoryFromCSV(data: unknown) {
 
   console.log(`Iniciando actualización masiva de inventario para ${productsToUpdate.length} productos.`);
 
-  // Usamos 'upsert' para actualizar la cantidad de los productos existentes basándonos en el código.
-  // 'onConflict' especifica que 'code' es la columna que puede tener conflictos (duplicados).
-  const { data: updatedData, error } = await supabase
-    .from('productos')
-    .upsert(productsToUpdate, { onConflict: 'code', ignoreDuplicates: false });
+  // La operación `upsert` con `onConflict` requiere que la columna 'code' tenga una restricción UNIQUE.
+  // Si no la tiene, la base de datos devuelve un error.
+  // Como alternativa, podemos realizar una serie de actualizaciones individuales.
+  // Esto es menos performante para grandes volúmenes, pero no requiere cambios en el esquema de la BD.
 
-  if (error) {
-    console.error('Error de Supabase durante la actualización masiva:', error);
-    return { error: `Error al actualizar el inventario: ${error.message}` };
+  const errors: { code: string; message: string }[] = [];
+  
+  for (const product of productsToUpdate) {
+    const { error } = await supabase
+      .from('productos')
+      .update({ quantity: product.quantity })
+      .eq('code', product.code);
+
+    if (error) {
+      console.error(`Error actualizando el producto con código ${product.code}:`, error.message);
+      errors.push({ code: product.code, message: error.message });
+    }
+  }
+
+  if (errors.length > 0) {
+    const errorMessage = `Ocurrieron errores al actualizar ${errors.length} producto(s). Revisa la consola del servidor para más detalles.`;
+    return { error: errorMessage };
   }
   
-  console.log('Actualización masiva de inventario completada con éxito.', updatedData);
+  console.log('Actualización masiva de inventario completada con éxito.');
   revalidatePath('/inventory');
   revalidatePath('/dashboard');
   return { success: true };
