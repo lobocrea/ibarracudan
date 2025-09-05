@@ -30,15 +30,14 @@ import {
 } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { createOrder } from '../actions';
-import type { Product, OrderItem } from '@/lib/types';
+import type { Product } from '@/lib/types';
 import { PlusCircle, Trash2 } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 const orderItemSchema = z.object({
-  productId: z.string().min(1),
-  code: z.string(),
+  producto_id: z.string().uuid().min(1),
   quantity: z.coerce.number().int().min(1, "Mínimo 1"),
-  sellPrice: z.coerce.number(),
+  sell_price: z.coerce.number(),
   stock: z.coerce.number(),
 });
 
@@ -71,11 +70,16 @@ export function CreateOrderDialog({ isOpen, setIsOpen, inventory }: CreateOrderD
   });
 
   const availableProducts = inventory.filter(p => p.quantity > 0);
-  
-  const selectedProductIds = form.watch('items').map(item => item.productId);
+  const selectedProductIds = form.watch('items').map(item => item.producto_id);
 
   const onSubmit = async (data: OrderFormValues) => {
-    const result = await createOrder(data);
+    // We only need producto_id and quantity for the server action
+    const orderItems = data.items.map(item => ({
+      producto_id: item.producto_id,
+      quantity: item.quantity,
+    }));
+
+    const result = await createOrder({ clientName: data.clientName, items: orderItems });
 
     if (result.success) {
       toast({
@@ -99,16 +103,15 @@ export function CreateOrderDialog({ isOpen, setIsOpen, inventory }: CreateOrderD
     }
   }, [isOpen, form]);
 
-  const total = form.watch('items').reduce((acc, item) => acc + (item.quantity * item.sellPrice), 0);
+  const total = form.watch('items').reduce((acc, item) => acc + (item.quantity * item.sell_price), 0);
   
   const handleAddProduct = () => {
     const firstAvailable = availableProducts.find(p => !selectedProductIds.includes(p.id));
     if (firstAvailable) {
         append({ 
-            productId: firstAvailable.id, 
-            code: firstAvailable.code, 
+            producto_id: firstAvailable.id, 
             quantity: 1, 
-            sellPrice: firstAvailable.sellPrice,
+            sell_price: firstAvailable.sell_price,
             stock: firstAvailable.quantity,
         });
     } else {
@@ -147,13 +150,15 @@ export function CreateOrderDialog({ isOpen, setIsOpen, inventory }: CreateOrderD
                         <FormLabel>Productos</FormLabel>
                         <div className="space-y-4 mt-2">
                         {fields.map((field, index) => {
-                           const currentProduct = inventory.find(p => p.id === form.watch(`items.${index}.productId`));
-                           const maxQuantity = currentProduct?.quantity ?? 0;
+                           const currentProductInForm = form.watch(`items.${index}`);
+                           const currentProductInInventory = inventory.find(p => p.id === currentProductInForm.producto_id);
+                           const maxQuantity = currentProductInInventory ? currentProductInInventory.quantity + (fields.find(f => f.producto_id === currentProductInForm.producto_id)?.quantity || 0) : 0;
+                           
                            return (
                             <div key={field.id} className="flex items-end gap-2 p-3 border rounded-lg">
                                 <Controller
                                     control={form.control}
-                                    name={`items.${index}.productId`}
+                                    name={`items.${index}.producto_id`}
                                     render={({ field: selectField }) => (
                                     <FormItem className="flex-1">
                                     <FormLabel>Producto</FormLabel>
@@ -161,8 +166,7 @@ export function CreateOrderDialog({ isOpen, setIsOpen, inventory }: CreateOrderD
                                             onValueChange={(value) => {
                                                 const product = inventory.find(p => p.id === value);
                                                 if(product) {
-                                                    form.setValue(`items.${index}.code`, product.code);
-                                                    form.setValue(`items.${index}.sellPrice`, product.sellPrice);
+                                                    form.setValue(`items.${index}.sell_price`, product.sell_price);
                                                     form.setValue(`items.${index}.stock`, product.quantity);
                                                     form.setValue(`items.${index}.quantity`, 1);
                                                     selectField.onChange(value);
@@ -177,8 +181,8 @@ export function CreateOrderDialog({ isOpen, setIsOpen, inventory }: CreateOrderD
                                         </FormControl>
                                         <SelectContent>
                                             {availableProducts.map(p => (
-                                                <SelectItem key={p.id} value={p.id} disabled={selectedProductIds.includes(p.id) && p.id !== field.productId}>
-                                                    {p.code} (Disp: {p.quantity}) - {p.sellPrice.toFixed(2)}€
+                                                <SelectItem key={p.id} value={p.id} disabled={selectedProductIds.includes(p.id) && p.id !== field.producto_id}>
+                                                    {p.code} (Disp: {p.quantity}) - {p.sell_price.toFixed(2)}€
                                                 </SelectItem>
                                             ))}
                                         </SelectContent>
@@ -195,7 +199,7 @@ export function CreateOrderDialog({ isOpen, setIsOpen, inventory }: CreateOrderD
                                     <FormItem className="w-28">
                                     <FormLabel>Cantidad</FormLabel>
                                     <FormControl>
-                                        <Input type="number" min="1" max={maxQuantity} {...quantityField} />
+                                        <Input type="number" min="1" max={currentProductInForm.stock} {...quantityField} />
                                     </FormControl>
                                     <FormMessage />
                                     </FormItem>
@@ -210,7 +214,7 @@ export function CreateOrderDialog({ isOpen, setIsOpen, inventory }: CreateOrderD
                         })}
                         </div>
                          {form.formState.errors.items && (
-                            <p className="text-sm font-medium text-destructive mt-2">{form.formState.errors.items.message}</p>
+                            <p className="text-sm font-medium text-destructive mt-2">{typeof form.formState.errors.items === 'string' ? form.formState.errors.items : form.formState.errors.items.message}</p>
                         )}
                     </div>
                     

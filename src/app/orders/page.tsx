@@ -1,27 +1,53 @@
-import { cookies } from 'next/headers';
-import { getOrders } from '@/lib/orders';
-import { getInventory } from '@/lib/inventory';
+import { createClient } from '@/lib/supabase/server';
 import { Header } from '@/app/inventory/components/Header';
 import { OrderList } from './components/OrderList';
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { redirect } from 'next/navigation';
+import type { Order } from '@/lib/types';
 
 export default async function OrdersPage() {
-  const orders = await getOrders();
-  const inventory = await getInventory();
-  const loggedInUser = cookies().get('session')?.value || 'Admin';
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
 
-  const totalRevenue = orders.reduce((sum, order) => sum + order.total, 0);
+  if (!user) {
+    redirect('/');
+  }
+
+  const { data: ordersData, error: ordersError } = await supabase
+    .from('pedidos')
+    .select(`
+      *,
+      items_pedido (
+        *,
+        productos (
+          code,
+          tipo
+        )
+      )
+    `)
+    .order('created_at', { ascending: false });
+
+  const { data: inventoryData, error: inventoryError } = await supabase
+    .from('productos')
+    .select('*')
+    .order('code', { ascending: true });
+
+  if (ordersError || inventoryError) {
+    console.error('Error fetching data:', ordersError || inventoryError);
+  }
+
+  const orders: Order[] = ordersData || [];
+  const totalRevenue = orders.reduce((sum, order) => sum + (order.total || 0), 0);
   const totalOrders = orders.length;
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
-      <Header user={loggedInUser} />
+      <Header user={user} />
       <main className="flex-1 p-4 md:p-8 space-y-8">
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <Card>
@@ -53,8 +79,10 @@ export default async function OrdersPage() {
                 strokeWidth="2"
                 className="h-4 w-4 text-muted-foreground"
               >
-                <rect width="16" height="16" x="4" y="4" rx="2" ry="2" />
-                <path d="M9 4v16" />
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
               </svg>
             </CardHeader>
             <CardContent>
@@ -65,7 +93,7 @@ export default async function OrdersPage() {
             </CardContent>
           </Card>
         </div>
-        <OrderList orders={orders} inventory={inventory} />
+        <OrderList orders={orders} inventory={inventoryData || []} />
       </main>
     </div>
   );

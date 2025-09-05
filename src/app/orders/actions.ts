@@ -2,15 +2,12 @@
 
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
-import { getOrders, saveOrders } from '@/lib/orders';
-import { getInventory, saveInventory } from '@/lib/inventory';
-import type { Order, OrderItem, Product } from '@/lib/types';
+import { createClient } from '@/lib/supabase/server';
+import type { OrderItem } from '@/lib/types';
 
 const orderItemSchema = z.object({
-  productId: z.string(),
-  code: z.string(),
+  producto_id: z.string().uuid(),
   quantity: z.coerce.number().int().min(1, "La cantidad debe ser al menos 1"),
-  sellPrice: z.coerce.number(),
 });
 
 const createOrderSchema = z.object({
@@ -19,7 +16,7 @@ const createOrderSchema = z.object({
 });
 
 
-export async function createOrder(data: { clientName: string, items: OrderItem[]}) {
+export async function createOrder(data: { clientName: string, items: Omit<OrderItem, 'code' | 'sellPrice' | 'stock'>[]}) {
   const validatedFields = createOrderSchema.safeParse(data);
 
   if (!validatedFields.success) {
@@ -29,37 +26,18 @@ export async function createOrder(data: { clientName: string, items: OrderItem[]
   }
 
   const { clientName, items } = validatedFields.data;
-
-  const inventory = await getInventory();
-  const orders = await getOrders();
+  const supabase = createClient();
   
-  const total = items.reduce((sum, item) => sum + (item.quantity * item.sellPrice), 0);
+  const { error } = await supabase.rpc('handle_new_order', {
+    client_name: clientName,
+    order_items: items,
+  });
 
-  // Check stock and update inventory
-  const updatedInventory = [...inventory];
-  for (const item of items) {
-    const productIndex = updatedInventory.findIndex(p => p.id === item.productId);
-    if (productIndex === -1) {
-      return { error: `Producto con código ${item.code} no encontrado.` };
-    }
-    if (updatedInventory[productIndex].quantity < item.quantity) {
-      return { error: `Stock insuficiente para el producto ${item.code}. Disponible: ${updatedInventory[productIndex].quantity}` };
-    }
-    updatedInventory[productIndex].quantity -= item.quantity;
+  if (error) {
+    return { error: error.message };
   }
-  
-  const newOrder: Order = {
-    id: new Date().getTime().toString(),
-    clientName,
-    items,
-    total,
-    createdAt: new Date().toISOString(),
-  };
-
-  await saveInventory(updatedInventory);
-  await saveOrders([newOrder, ...orders]);
 
   revalidatePath('/orders');
   revalidatePath('/inventory');
-  return { success: true, order: newOrder };
+  return { success: true };
 }

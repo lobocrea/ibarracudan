@@ -2,15 +2,16 @@
 
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
-import { getInventory, saveInventory } from '@/lib/inventory';
+import { createClient } from '@/lib/supabase/server';
 import type { Product } from '@/lib/types';
 
 const productSchema = z.object({
-  id: z.string().optional(),
+  id: z.string().uuid().optional(),
   code: z.string().min(1, 'El código es obligatorio'),
+  tipo: z.string().optional(),
   quantity: z.coerce.number().min(0, 'La cantidad debe ser no negativa'),
-  buyPrice: z.coerce.number().min(0, 'El precio de compra debe ser no negativo'),
-  sellPrice: z.coerce.number().min(0, 'El precio de venta debe ser no negativo'),
+  buy_price: z.coerce.number().min(0, 'El precio de compra debe ser no negativo'),
+  sell_price: z.coerce.number().min(0, 'El precio de venta debe ser no negativo'),
 });
 
 export async function addProduct(formData: FormData) {
@@ -21,14 +22,16 @@ export async function addProduct(formData: FormData) {
       errors: validatedFields.error.flatten().fieldErrors,
     };
   }
+  
+  const supabase = createClient();
+  const { id, ...productData } = validatedFields.data;
 
-  const inventory = await getInventory();
-  const newProduct: Product = {
-    ...validatedFields.data,
-    id: new Date().getTime().toString(),
-  };
+  const { error } = await supabase.from('productos').insert(productData);
+  
+  if (error) {
+    return { error: error.message };
+  }
 
-  await saveInventory([newProduct, ...inventory]);
   revalidatePath('/inventory');
   return { success: true };
 }
@@ -48,17 +51,13 @@ export async function updateProduct(formData: FormData) {
     return { error: 'Falta el ID del producto' };
   }
 
-  const inventory = await getInventory();
-  const productIndex = inventory.findIndex(p => p.id === id);
+  const supabase = createClient();
+  const { error } = await supabase.from('productos').update(productData).eq('id', id);
 
-  if (productIndex === -1) {
-    return { error: 'Producto no encontrado' };
+  if (error) {
+    return { error: error.message };
   }
-  
-  const existingProduct = inventory[productIndex];
-  inventory[productIndex] = { ...existingProduct, ...productData };
 
-  await saveInventory(inventory);
   revalidatePath('/inventory');
   return { success: true };
 }
@@ -68,14 +67,13 @@ export async function deleteProduct(productId: string) {
     return { error: 'Falta el ID del producto' };
   }
   
-  const inventory = await getInventory();
-  const updatedInventory = inventory.filter(p => p.id !== productId);
-
-  if (inventory.length === updatedInventory.length) {
-     return { error: 'Producto no encontrado' };
+  const supabase = createClient();
+  const { error } = await supabase.from('productos').delete().eq('id', productId);
+  
+  if (error) {
+    return { error: error.message };
   }
 
-  await saveInventory(updatedInventory);
   revalidatePath('/inventory');
   return { success: true };
 }

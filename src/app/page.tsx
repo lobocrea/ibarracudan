@@ -1,7 +1,16 @@
 import { LoginForm } from '@/app/components/LoginForm';
 import { Package } from 'lucide-react';
+import { createClient } from '@/lib/supabase/server';
+import { redirect } from 'next/navigation';
 
-export default function LoginPage() {
+export default async function LoginPage() {
+  const supabase = createClient();
+  const { data } = await supabase.auth.getUser();
+
+  if (data.user) {
+    redirect('/inventory');
+  }
+  
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
       <div className="w-full max-w-md">
@@ -14,7 +23,7 @@ export default function LoginPage() {
         <p className="text-center text-muted-foreground mb-8">Bienvenido de nuevo. Por favor, inicia sesión en tu cuenta.</p>
         <LoginForm />
         <p className="px-8 text-center text-sm text-muted-foreground mt-8">
-          Usa "cesar" o "edilberto" como nombre de usuario y "123456789" como contraseña.
+          Usa un email de prueba y cualquier contraseña.
         </p>
       </div>
     </div>

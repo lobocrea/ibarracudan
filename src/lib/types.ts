@@ -1,22 +1,34 @@
 export type Product = {
-  id: string;
+  id: string; // uuid
   code: string;
+  tipo: string | null;
   quantity: number;
-  buyPrice: number;
-  sellPrice: number;
+  buy_price: number;
+  sell_price: number;
 };
 
 export type OrderItem = {
-  productId: string;
-  code: string;
+  producto_id: string; // uuid
   quantity: number;
-  sellPrice: number;
 };
 
 export type Order = {
-  id: string;
-  clientName: string;
-  items: OrderItem[];
-  total: number;
-  createdAt: string;
+  id: number; // bigint
+  created_at: string;
+  client_name: string | null;
+  total: number | null;
+  user_id: string | null; // uuid
+  items_pedido: OrderItemDetail[];
 };
+
+export type OrderItemDetail = {
+  id: number;
+  pedido_id: number;
+  producto_id: string;
+  quantity: number;
+  sell_price: number;
+  productos: {
+    code: string;
+    tipo: string | null;
+  }
+}

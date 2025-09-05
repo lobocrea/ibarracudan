@@ -27,11 +27,12 @@ import { addProduct, updateProduct } from '../actions';
 import type { Product } from '@/lib/types';
 
 const productFormSchema = z.object({
-  id: z.string().optional(),
+  id: z.string().uuid().optional(),
   code: z.string().min(1, 'El código es obligatorio'),
+  tipo: z.string().nullable().optional(),
   quantity: z.coerce.number().int().min(0, 'La cantidad debe ser un entero no negativo'),
-  buyPrice: z.coerce.number().min(0, 'El precio de compra debe ser no negativo'),
-  sellPrice: z.coerce.number().min(0, 'El precio de venta debe ser no negativo'),
+  buy_price: z.coerce.number().min(0, 'El precio de compra debe ser no negativo'),
+  sell_price: z.coerce.number().min(0, 'El precio de venta debe ser no negativo'),
 });
 
 type ProductFormValues = z.infer<typeof productFormSchema>;
@@ -48,9 +49,10 @@ export function ProductDialog({ isOpen, setIsOpen, product }: ProductDialogProps
     resolver: zodResolver(productFormSchema),
     defaultValues: {
       code: '',
+      tipo: '',
       quantity: 0,
-      buyPrice: 0,
-      sellPrice: 0,
+      buy_price: 0,
+      sell_price: 0,
     },
   });
 
@@ -62,9 +64,10 @@ export function ProductDialog({ isOpen, setIsOpen, product }: ProductDialogProps
         form.reset({
           id: undefined,
           code: '',
+          tipo: '',
           quantity: 0,
-          buyPrice: 0,
-          sellPrice: 0,
+          buy_price: 0,
+          sell_price: 0,
         });
       }
     }
@@ -123,6 +126,19 @@ export function ProductDialog({ isOpen, setIsOpen, product }: ProductDialogProps
             />
             <FormField
               control={form.control}
+              name="tipo"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Tipo</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Descripción del tipo" {...field} value={field.value ?? ''} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
               name="quantity"
               render={({ field }) => (
                 <FormItem>
@@ -136,7 +152,7 @@ export function ProductDialog({ isOpen, setIsOpen, product }: ProductDialogProps
             />
              <FormField
               control={form.control}
-              name="buyPrice"
+              name="buy_price"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Precio de Compra</FormLabel>
@@ -149,7 +165,7 @@ export function ProductDialog({ isOpen, setIsOpen, product }: ProductDialogProps
             />
             <FormField
               control={form.control}
-              name="sellPrice"
+              name="sell_price"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Precio de Venta</FormLabel>

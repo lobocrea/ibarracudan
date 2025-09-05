@@ -4,6 +4,7 @@
 DROP TABLE IF EXISTS "items_pedido";
 DROP TABLE IF EXISTS "pedidos";
 DROP TABLE IF EXISTS "productos";
+DROP FUNCTION IF EXISTS public.handle_new_order(text,jsonb);
 
 -- 1. Tabla de Productos
 CREATE TABLE "productos" (
@@ -54,10 +55,10 @@ CREATE TABLE "pedidos" (
 ALTER TABLE "pedidos" ENABLE ROW LEVEL SECURITY;
 
 -- Políticas para la tabla de pedidos
-CREATE POLICY "Enable read access for own orders" ON "pedidos"
+CREATE POLICY "Enable read access for all users" ON "pedidos"
 AS PERMISSIVE FOR SELECT
-TO authenticated
-USING (auth.uid() = user_id);
+TO public
+USING (true);
 
 CREATE POLICY "Enable insert for authenticated users" ON "pedidos"
 AS PERMISSIVE FOR INSERT
@@ -78,12 +79,11 @@ CREATE TABLE "items_pedido" (
 ALTER TABLE "items_pedido" ENABLE ROW LEVEL SECURITY;
 
 -- Políticas para la tabla de items_pedido
-CREATE POLICY "Enable read access for users who own the order" ON "items_pedido"
+CREATE POLICY "Enable read access for all users" ON "items_pedido"
 AS PERMISSIVE FOR SELECT
-TO authenticated
-USING (
-  (SELECT user_id FROM pedidos WHERE id = pedido_id) = auth.uid()
-);
+TO public
+USING (true);
+
 
 CREATE POLICY "Enable insert for authenticated users" ON "items_pedido"
 AS PERMISSIVE FOR INSERT

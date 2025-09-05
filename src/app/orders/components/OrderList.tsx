@@ -51,7 +51,7 @@ export function OrderList({ orders, inventory }: { orders: Order[], inventory: P
               <CardTitle>Pedidos</CardTitle>
               <CardDescription>Consulta y gestiona los pedidos de tus clientes.</CardDescription>
             </div>
-            <Button onClick={() => setDialogOpen(true)}>
+            <Button onClick={() => setDialogOpen(true)} disabled={inventory.length === 0}>
               <PlusCircle className="mr-2 h-4 w-4" />
               Crear Pedido
             </Button>
@@ -75,13 +75,13 @@ export function OrderList({ orders, inventory }: { orders: Order[], inventory: P
               {orders.length > 0 ? (
                 orders.map((order) => (
                   <TableRow key={order.id}>
-                    <TableCell className="font-medium">#{order.id.slice(-6)}</TableCell>
-                    <TableCell>{order.clientName}</TableCell>
-                    <TableCell>{formatDate(order.createdAt)}</TableCell>
+                    <TableCell className="font-medium">#{order.id}</TableCell>
+                    <TableCell>{order.client_name}</TableCell>
+                    <TableCell>{formatDate(order.created_at)}</TableCell>
                     <TableCell>
-                        <Badge variant="outline">{order.items.length} producto(s)</Badge>
+                        <Badge variant="outline">{order.items_pedido.length} producto(s)</Badge>
                     </TableCell>
-                    <TableCell className="text-right">{formatCurrency(order.total)}</TableCell>
+                    <TableCell className="text-right">{formatCurrency(order.total || 0)}</TableCell>
                     <TableCell>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>

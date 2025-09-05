@@ -72,6 +72,7 @@ export function ProductTable({ products }: { products: Product[] }) {
             <TableHeader>
               <TableRow>
                 <TableHead>Código</TableHead>
+                <TableHead>Tipo</TableHead>
                 <TableHead className="text-right">Cantidad</TableHead>
                 <TableHead className="text-right">Precio de Compra</TableHead>
                 <TableHead className="text-right">Precio de Venta</TableHead>
@@ -85,9 +86,10 @@ export function ProductTable({ products }: { products: Product[] }) {
                 products.map((product) => (
                   <TableRow key={product.id}>
                     <TableCell className="font-medium">{product.code}</TableCell>
+                    <TableCell>{product.tipo}</TableCell>
                     <TableCell className="text-right">{product.quantity}</TableCell>
-                    <TableCell className="text-right">{formatCurrency(product.buyPrice)}</TableCell>
-                    <TableCell className="text-right">{formatCurrency(product.sellPrice)}</TableCell>
+                    <TableCell className="text-right">{formatCurrency(product.buy_price)}</TableCell>
+                    <TableCell className="text-right">{formatCurrency(product.sell_price)}</TableCell>
                     <TableCell>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -106,7 +108,7 @@ export function ProductTable({ products }: { products: Product[] }) {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={5} className="h-24 text-center">
+                  <TableCell colSpan={6} className="h-24 text-center">
                     No se encontraron productos. Añade uno nuevo para empezar.
                   </TableCell>
                 </TableRow>

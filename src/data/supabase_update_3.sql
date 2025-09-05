@@ -1,2 +1,0 @@
--- Este script ha sido reemplazado por supabase_reset.sql para solucionar problemas de secuencias.
--- Por favor, ejecuta el contenido de supabase_reset.sql.

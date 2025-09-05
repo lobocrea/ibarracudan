@@ -5,9 +5,10 @@ import { logout } from '@/lib/auth';
 import { LogOut, Package, ShoppingCart } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
+import type { User } from '@supabase/supabase-js';
 
 type HeaderProps = {
-  user: string;
+  user: User;
 };
 
 export function Header({ user }: HeaderProps) {
@@ -30,16 +31,14 @@ export function Header({ user }: HeaderProps) {
         </nav>
       </div>
       <div className="flex items-center gap-4">
-        <Button variant="outline" size="icon" className="md:hidden">
-            <ShoppingCart className="h-5 w-5" />
-            <span className="sr-only">Pedidos</span>
+        <Button variant="outline" size="icon" className="md:hidden" asChild>
+            <Link href="/orders"><ShoppingCart className="h-5 w-5" /></Link>
         </Button>
-         <Button variant="outline" size="icon" className="md:hidden">
-            <Package className="h-5 w-5" />
-            <span className="sr-only">Inventario</span>
+         <Button variant="outline" size="icon" className="md:hidden" asChild>
+            <Link href="/inventory"><Package className="h-5 w-5" /></Link>
         </Button>
         <span className="text-sm text-muted-foreground hidden md:inline">
-          Bienvenido, <span className="font-semibold capitalize">{user}</span>
+          {user.email}
         </span>
         <form action={logout}>
           <Button variant="outline" size="icon" type="submit">
