@@ -71,7 +71,7 @@ export function ProductDialog({ isOpen, setIsOpen, product }: ProductDialogProps
         });
       }
     }
-  }, [product, form, isOpen]);
+  }, [isOpen, product, form]);
 
   const onSubmit = async (data: ProductFormValues) => {
     const formData = new FormData();
