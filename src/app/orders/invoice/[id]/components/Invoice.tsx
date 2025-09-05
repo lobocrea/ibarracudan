@@ -47,9 +47,8 @@ export function Invoice({ order }: InvoiceProps) {
                     <div>
                         <div className="flex items-center gap-3 mb-2">
                              <Package className="h-8 w-8 text-primary" />
-                             <h1 className="text-3xl font-bold text-primary">FlujoDeInventario</h1>
+                             <h1 className="text-3xl font-bold text-primary">Ibarracudán</h1>
                         </div>
-                        <p className="text-muted-foreground">IBARRACUDAN</p>
                         <p className="text-muted-foreground">San Diego, Zip Code 2006</p>
                     </div>
                     <div className="text-right">

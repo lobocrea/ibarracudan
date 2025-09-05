@@ -19,7 +19,7 @@ export function Header({ user }: HeaderProps) {
       <div className="flex items-center gap-6">
         <div className="flex items-center gap-2">
             <Package className="h-6 w-6 text-primary" />
-            <h1 className="text-xl font-bold text-foreground">FlujoDeInventario</h1>
+            <h1 className="text-xl font-bold text-foreground">Ibarracudán</h1>
         </div>
         <nav className="hidden items-center gap-4 text-sm font-medium md:flex">
           <Link href="/dashboard" className={cn("transition-colors hover:text-foreground", pathname === '/dashboard' ? 'text-foreground' : 'text-muted-foreground')}>

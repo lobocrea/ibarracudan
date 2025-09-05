@@ -19,7 +19,7 @@ export default async function LoginPage() {
             <Package className="h-10 w-10" />
           </div>
         </div>
-        <h1 className="text-3xl font-bold text-center mb-2 text-foreground">FlujoDeInventario</h1>
+        <h1 className="text-3xl font-bold text-center mb-2 text-foreground">Ibarracudán</h1>
         <p className="text-center text-muted-foreground mb-8">Bienvenido de nuevo. Por favor, inicia sesión en tu cuenta.</p>
         <LoginForm />
       </div>

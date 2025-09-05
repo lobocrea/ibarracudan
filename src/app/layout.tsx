@@ -3,7 +3,7 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
 
 export const metadata: Metadata = {
-  title: 'FlujoDeInventario',
+  title: 'Ibarracudán',
   description: 'Sistema de Gestión de Inventario',
 };
 
