@@ -4,8 +4,9 @@ export function middleware(request: NextRequest) {
   const session = request.cookies.get('session')?.value;
 
   const isPublicRoute = request.nextUrl.pathname === '/';
+  const isProtectedRoute = request.nextUrl.pathname.startsWith('/inventory') || request.nextUrl.pathname.startsWith('/orders');
 
-  if (!session && !isPublicRoute && request.nextUrl.pathname.startsWith('/inventory')) {
+  if (!session && isProtectedRoute) {
     return NextResponse.redirect(new URL('/', request.url));
   }
 
