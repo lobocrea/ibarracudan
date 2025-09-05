@@ -24,22 +24,25 @@ import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 async function getDashboardData() {
     const supabase = createClient();
 
-    const { data: products, error: productsError } = await supabase
-        .from('productos')
-        .select('*');
-
-    const { data: ordersData, error: ordersError } = await supabase
+    const productsPromise = supabase.from('productos').select('*');
+    const lowStockProductsPromise = supabase.from('productos').select('*').lt('quantity', 10);
+    const ordersPromise = supabase
         .from('pedidos')
         .select('*, items_pedido(*, productos(buy_price, sell_price, code, id))')
         .order('created_at', { ascending: false });
 
-    if (productsError || ordersError) {
-        console.error('Error fetching dashboard data:', productsError || ordersError);
+    const [
+        { data: products, error: productsError },
+        { data: lowStockProducts, error: lowStockProductsError },
+        { data: ordersData, error: ordersError }
+    ] = await Promise.all([productsPromise, lowStockProductsPromise, ordersPromise]);
+    
+    if (productsError || ordersError || lowStockProductsError) {
+        console.error('Error fetching dashboard data:', productsError || ordersError || lowStockProductsError);
         return { products: [], orders: [], lowStockProducts: [], recentSales: [], totalRevenue: 0, totalCost: 0 };
     }
 
     const typedOrders = (ordersData || []) as Order[];
-    const lowStockProducts = (products || []).filter(p => p.quantity < 10);
     
     const recentSales = typedOrders
         .flatMap(order => 
@@ -63,7 +66,7 @@ async function getDashboardData() {
     return {
         products: products || [],
         orders: typedOrders || [],
-        lowStockProducts,
+        lowStockProducts: lowStockProducts || [],
         recentSales,
         totalRevenue,
         totalCost,
