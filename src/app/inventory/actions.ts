@@ -5,17 +5,18 @@ import { z } from 'zod';
 import { createClient } from '@/lib/supabase/server';
 import type { Product } from '@/lib/types';
 
+// Unificamos el esquema para que sea consistente en ambos lados
 const productSchema = z.object({
   id: z.string().uuid().optional(),
   code: z.string().min(1, 'El código es obligatorio'),
-  tipo: z.string().optional(),
-  quantity: z.coerce.number().min(0, 'La cantidad debe ser no negativa'),
+  tipo: z.string().nullable().optional(),
+  quantity: z.coerce.number().int().min(0, 'La cantidad debe ser un entero no negativo'),
   buy_price: z.coerce.number().min(0, 'El precio de compra debe ser no negativo'),
   sell_price: z.coerce.number().min(0, 'El precio de venta debe ser no negativo'),
 });
 
-export async function addProduct(formData: FormData) {
-  const validatedFields = productSchema.safeParse(Object.fromEntries(formData.entries()));
+export async function addProduct(data: unknown) {
+  const validatedFields = productSchema.safeParse(data);
 
   if (!validatedFields.success) {
     return {
@@ -37,8 +38,8 @@ export async function addProduct(formData: FormData) {
   return { success: true };
 }
 
-export async function updateProduct(formData: FormData) {
-  const validatedFields = productSchema.safeParse(Object.fromEntries(formData.entries()));
+export async function updateProduct(data: unknown) {
+  const validatedFields = productSchema.safeParse(data);
 
   if (!validatedFields.success) {
     return {

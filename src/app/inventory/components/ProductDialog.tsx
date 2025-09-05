@@ -26,6 +26,7 @@ import { useToast } from '@/hooks/use-toast';
 import { addProduct, updateProduct } from '../actions';
 import type { Product } from '@/lib/types';
 
+// Unificamos el esquema para que sea consistente
 const productFormSchema = z.object({
   id: z.string().uuid().optional(),
   code: z.string().min(1, 'El código es obligatorio'),
@@ -34,6 +35,7 @@ const productFormSchema = z.object({
   buy_price: z.coerce.number().min(0, 'El precio de compra debe ser no negativo'),
   sell_price: z.coerce.number().min(0, 'El precio de venta debe ser no negativo'),
 });
+
 
 type ProductFormValues = z.infer<typeof productFormSchema>;
 
@@ -74,15 +76,9 @@ export function ProductDialog({ isOpen, setIsOpen, product }: ProductDialogProps
   }, [isOpen, product, form]);
 
   const onSubmit = async (data: ProductFormValues) => {
-    const formData = new FormData();
-    Object.entries(data).forEach(([key, value]) => {
-      if (value !== undefined && value !== null) {
-        formData.append(key, String(value));
-      }
-    });
-
     const action = product ? updateProduct : addProduct;
-    const result = await action(formData);
+    // Enviamos el objeto 'data' directamente
+    const result = await action(data);
     
     if (result.success) {
       toast({
