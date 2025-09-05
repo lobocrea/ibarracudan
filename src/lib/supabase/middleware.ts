@@ -65,9 +65,9 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(new URL('/', request.url))
   }
 
-  // Si hay usuario y se intenta acceder a una ruta pública (como login), redirigir al inventario
+  // Si hay usuario y se intenta acceder a una ruta pública (como login), redirigir al dashboard
   if (user && isPublicRoute) {
-    return NextResponse.redirect(new URL('/inventory', request.url));
+    return NextResponse.redirect(new URL('/dashboard', request.url));
   }
 
   return response

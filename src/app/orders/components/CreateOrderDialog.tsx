@@ -37,13 +37,15 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 const orderItemSchema = z.object({
   producto_id: z.string().uuid("Selecciona un producto válido."),
   quantity: z.coerce.number().int().min(1, "Mínimo 1"),
-  // These two are for client-side display and calculation only
   sell_price: z.coerce.number(), 
   stock: z.coerce.number(),
 });
 
 const orderFormSchema = z.object({
   clientName: z.string().min(2, 'El nombre es obligatorio'),
+  clientAddress: z.string().optional(),
+  clientPhone: z.string().optional(),
+  clientIdNumber: z.string().optional(),
   items: z.array(orderItemSchema).min(1, "Añade al menos un producto."),
 });
 
@@ -61,6 +63,9 @@ export function CreateOrderDialog({ isOpen, setIsOpen, inventory }: CreateOrderD
     resolver: zodResolver(orderFormSchema),
     defaultValues: {
       clientName: '',
+      clientAddress: '',
+      clientPhone: '',
+      clientIdNumber: '',
       items: [],
     },
   });
@@ -74,13 +79,18 @@ export function CreateOrderDialog({ isOpen, setIsOpen, inventory }: CreateOrderD
   const selectedProductIds = form.watch('items').map(item => item.producto_id);
 
   const onSubmit = async (data: OrderFormValues) => {
-    // We only need producto_id and quantity for the server action
     const orderItems = data.items.map(item => ({
       producto_id: item.producto_id,
       quantity: item.quantity,
     }));
 
-    const result = await createOrder({ clientName: data.clientName, items: orderItems });
+    const result = await createOrder({ 
+        clientName: data.clientName, 
+        clientAddress: data.clientAddress,
+        clientPhone: data.clientPhone,
+        clientIdNumber: data.clientIdNumber,
+        items: orderItems 
+    });
 
     if (result.success) {
       toast({
@@ -131,21 +141,62 @@ export function CreateOrderDialog({ isOpen, setIsOpen, inventory }: CreateOrderD
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-             <ScrollArea className="h-[50vh] pr-4">
+             <ScrollArea className="h-[55vh] pr-4">
                 <div className="space-y-4 py-4">
                     <FormField
-                    control={form.control}
-                    name="clientName"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel>Nombre del Cliente</FormLabel>
-                        <FormControl>
-                            <Input placeholder="Ej: Juan Pérez" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                        </FormItem>
-                    )}
+                      control={form.control}
+                      name="clientName"
+                      render={({ field }) => (
+                          <FormItem>
+                          <FormLabel>Nombre del Cliente</FormLabel>
+                          <FormControl>
+                              <Input placeholder="Ej: Juan Pérez" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                          </FormItem>
+                      )}
                     />
+                    <FormField
+                      control={form.control}
+                      name="clientAddress"
+                      render={({ field }) => (
+                          <FormItem>
+                          <FormLabel>Dirección del Cliente</FormLabel>
+                          <FormControl>
+                              <Input placeholder="Ej: Calle Falsa 123, Ciudad" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                          </FormItem>
+                      )}
+                    />
+                    <div className="grid grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="clientPhone"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Teléfono</FormLabel>
+                            <FormControl>
+                                <Input placeholder="Ej: 0414-1234567" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="clientIdNumber"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Cédula / RIF</FormLabel>
+                            <FormControl>
+                                <Input placeholder="Ej: V-12345678" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                      />
+                    </div>
                     
                     <div>
                         <FormLabel>Productos</FormLabel>
@@ -164,7 +215,6 @@ export function CreateOrderDialog({ isOpen, setIsOpen, inventory }: CreateOrderD
                                             onValueChange={(value) => {
                                                 const product = inventory.find(p => p.id === value);
                                                 if(product) {
-                                                    // Update the entire field array item to ensure reactivity
                                                     update(index, {
                                                         ...form.getValues(`items.${index}`),
                                                         producto_id: product.id,

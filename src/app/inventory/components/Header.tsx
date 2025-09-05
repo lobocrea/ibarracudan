@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { logout } from '@/lib/auth';
-import { LogOut, Package, ShoppingCart } from 'lucide-react';
+import { LogOut, Package, LayoutDashboard, ShoppingCart } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import type { User } from '@supabase/supabase-js';
@@ -22,6 +22,9 @@ export function Header({ user }: HeaderProps) {
             <h1 className="text-xl font-bold text-foreground">FlujoDeInventario</h1>
         </div>
         <nav className="hidden items-center gap-4 text-sm font-medium md:flex">
+          <Link href="/dashboard" className={cn("transition-colors hover:text-foreground", pathname === '/dashboard' ? 'text-foreground' : 'text-muted-foreground')}>
+              Dashboard
+          </Link>
           <Link href="/inventory" className={cn("transition-colors hover:text-foreground", pathname === '/inventory' ? 'text-foreground' : 'text-muted-foreground')}>
               Inventario
           </Link>
@@ -32,10 +35,13 @@ export function Header({ user }: HeaderProps) {
       </div>
       <div className="flex items-center gap-4">
         <Button variant="outline" size="icon" className="md:hidden" asChild>
-            <Link href="/orders"><ShoppingCart className="h-5 w-5" /></Link>
+            <Link href="/dashboard"><LayoutDashboard className="h-5 w-5" /></Link>
         </Button>
-         <Button variant="outline" size="icon" className="md:hidden" asChild>
+        <Button variant="outline" size="icon" className="md:hidden" asChild>
             <Link href="/inventory"><Package className="h-5 w-5" /></Link>
+        </Button>
+        <Button variant="outline" size="icon" className="md:hidden" asChild>
+            <Link href="/orders"><ShoppingCart className="h-5 w-5" /></Link>
         </Button>
         <span className="text-sm text-muted-foreground hidden md:inline">
           {user.email}

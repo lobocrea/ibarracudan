@@ -12,10 +12,19 @@ const orderItemSchema = z.object({
 
 const createOrderSchema = z.object({
   clientName: z.string().min(1, 'El nombre del cliente es obligatorio'),
+  clientAddress: z.string().optional(),
+  clientPhone: z.string().optional(),
+  clientIdNumber: z.string().optional(),
   items: z.array(orderItemSchema).min(1, 'El pedido debe tener al menos un producto'),
 });
 
-export async function createOrder(data: { clientName: string; items: OrderItem[] }) {
+export async function createOrder(data: { 
+  clientName: string; 
+  clientAddress?: string;
+  clientPhone?: string;
+  clientIdNumber?: string;
+  items: OrderItem[] 
+}) {
   const validatedFields = createOrderSchema.safeParse(data);
 
   if (!validatedFields.success) {
@@ -24,12 +33,14 @@ export async function createOrder(data: { clientName: string; items: OrderItem[]
     };
   }
 
-  const { clientName, items } = validatedFields.data;
+  const { clientName, clientAddress, clientPhone, clientIdNumber, items } = validatedFields.data;
   const supabase = createClient();
 
-  // The 'handle_new_order' function expects a JSONB object for order_items
   const { error } = await supabase.rpc('handle_new_order', {
     client_name: clientName,
+    client_address: clientAddress,
+    client_phone: clientPhone,
+    client_id_number: clientIdNumber,
     order_items: items,
   });
 
@@ -40,5 +51,6 @@ export async function createOrder(data: { clientName: string; items: OrderItem[]
 
   revalidatePath('/orders');
   revalidatePath('/inventory');
+  revalidatePath('/dashboard');
   return { success: true };
 }

@@ -16,6 +16,9 @@ export type Order = {
   id: string; // uuid
   created_at: string;
   client_name: string | null;
+  client_address: string | null;
+  client_phone: string | null;
+  client_id_number: string | null;
   total: number | null;
   user_id: string | null; // uuid
   items_pedido: OrderItemDetail[];
