@@ -8,7 +8,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { redirect } from 'next/navigation';
-import type { Order } from '@/lib/types';
+import type { Order, Product } from '@/lib/types';
 
 export default async function OrdersPage() {
   const supabase = createClient();
@@ -18,18 +18,10 @@ export default async function OrdersPage() {
     redirect('/');
   }
 
+  // Corregido: Se simplifica la consulta para que sea más robusta.
   const { data: ordersData, error: ordersError } = await supabase
     .from('pedidos')
-    .select(`
-      *,
-      items_pedido (
-        *,
-        productos (
-          code,
-          tipo
-        )
-      )
-    `)
+    .select('*, items_pedido(*, productos(*))')
     .order('created_at', { ascending: false });
 
   const { data: inventoryData, error: inventoryError } = await supabase
@@ -38,12 +30,14 @@ export default async function OrdersPage() {
     .order('code', { ascending: true });
 
   if (ordersError || inventoryError) {
+    // Proporcionar más detalles en el log del servidor
     console.error('Error fetching data:', ordersError || inventoryError);
   }
 
   const orders: Order[] = ordersData || [];
   const totalRevenue = orders.reduce((sum, order) => sum + (order.total || 0), 0);
   const totalOrders = orders.length;
+  const inventory: Product[] = inventoryData || [];
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
@@ -93,7 +87,7 @@ export default async function OrdersPage() {
             </CardContent>
           </Card>
         </div>
-        <OrderList orders={orders} inventory={inventoryData || []} />
+        <OrderList orders={orders} inventory={inventory} />
       </main>
     </div>
   );
