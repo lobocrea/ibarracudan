@@ -79,6 +79,7 @@ export function CreateOrderDialog({ isOpen, setIsOpen, inventory }: CreateOrderD
   const selectedProductIds = form.watch('items').map(item => item.producto_id);
 
   const onSubmit = async (data: OrderFormValues) => {
+    // Mapea los items para enviar solo los campos necesarios a la server action
     const orderItems = data.items.map(item => ({
       producto_id: item.producto_id,
       quantity: item.quantity,
