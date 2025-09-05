@@ -49,9 +49,8 @@ export function Invoice({ order }: InvoiceProps) {
                              <Package className="h-8 w-8 text-primary" />
                              <h1 className="text-3xl font-bold text-primary">FlujoDeInventario</h1>
                         </div>
-                        <p className="text-muted-foreground">Tu Empresa S.L.</p>
-                        <p className="text-muted-foreground">Calle Falsa 123, Ciudad</p>
-                        <p className="text-muted-foreground">info@flujodeinventario.com</p>
+                        <p className="text-muted-foreground">IBARRACUDAN</p>
+                        <p className="text-muted-foreground">San Diego, Zip Code 2006</p>
                     </div>
                     <div className="text-right">
                         <h2 className="text-3xl font-bold text-muted-foreground">NOTA DE ENTREGA</h2>
