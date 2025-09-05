@@ -37,11 +37,11 @@ export async function createOrder(data: {
   const supabase = createClient();
 
   const { error } = await supabase.rpc('handle_new_order', {
-    client_name: clientName,
-    client_address: clientAddress,
-    client_phone: clientPhone,
-    client_id_number: clientIdNumber,
-    order_items: items,
+    p_client_name: clientName,
+    p_client_address: clientAddress,
+    p_client_phone: clientPhone,
+    p_client_id_number: clientIdNumber,
+    p_order_items: items,
   });
 
   if (error) {
