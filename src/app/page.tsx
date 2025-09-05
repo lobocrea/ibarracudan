@@ -22,9 +22,6 @@ export default async function LoginPage() {
         <h1 className="text-3xl font-bold text-center mb-2 text-foreground">FlujoDeInventario</h1>
         <p className="text-center text-muted-foreground mb-8">Bienvenido de nuevo. Por favor, inicia sesión en tu cuenta.</p>
         <LoginForm />
-        <p className="px-8 text-center text-sm text-muted-foreground mt-8">
-          Usa un email de prueba y cualquier contraseña.
-        </p>
       </div>
     </div>
   );

@@ -12,19 +12,15 @@ export async function authenticate(
   const password = formData.get('password') as string;
   const supabase = createClient();
 
-  const { error: signUpError } = await supabase.auth.signUp({ email, password });
+  const { error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
 
-  if (signUpError && signUpError.message.includes('already registered')) {
-     const { error: signInError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if(signInError) {
-        return 'Email o contraseña inválidos.';
-      }
-  } else if (signUpError) {
-    return signUpError.message;
+  if (error) {
+    // Para simplificar, devolvemos un mensaje genérico.
+    // En una aplicación real, podrías querer registrar el error.
+    return 'Email o contraseña inválidos.';
   }
   
   revalidatePath('/');

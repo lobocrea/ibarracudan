@@ -45,7 +45,7 @@ function LoginButton() {
   const { pending } = useFormStatus();
   return (
     <Button className="w-full" aria-disabled={pending}>
-      {pending ? 'Iniciando sesión...' : 'Iniciar sesión / Registrarse'}
+      {pending ? 'Iniciando sesión...' : 'Iniciar sesión'}
     </Button>
   );
 }
