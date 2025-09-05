@@ -26,7 +26,7 @@ import { useToast } from '@/hooks/use-toast';
 import { addProduct, updateProduct } from '../actions';
 import type { Product } from '@/lib/types';
 
-// Unificamos el esquema para que sea consistente
+// Unificamos el esquema para que sea consistente con el backend.
 const productFormSchema = z.object({
   id: z.string().uuid().optional(),
   code: z.string().min(1, 'El código es obligatorio'),
@@ -58,10 +58,18 @@ export function ProductDialog({ isOpen, setIsOpen, product }: ProductDialogProps
     },
   });
 
+  // Este useEffect se encarga de resetear el formulario cuando se abre el diálogo.
+  // Si hay un producto, rellena el formulario. Si no, lo deja en blanco.
   useEffect(() => {
     if (isOpen) {
       if (product) {
-        form.reset(product);
+        // Asegúrate de que todos los valores numéricos son números y no strings
+        form.reset({
+          ...product,
+          quantity: Number(product.quantity),
+          buy_price: Number(product.buy_price),
+          sell_price: Number(product.sell_price)
+        });
       } else {
         form.reset({
           id: undefined,
@@ -76,13 +84,14 @@ export function ProductDialog({ isOpen, setIsOpen, product }: ProductDialogProps
   }, [isOpen, product, form]);
 
   const onSubmit = async (data: ProductFormValues) => {
-    const action = product ? updateProduct : addProduct;
-    // Enviamos el objeto 'data' directamente
+    // Determina si es una acción de creación o actualización
+    const action = data.id ? updateProduct : addProduct;
+    
     const result = await action(data);
     
-    if (result.success) {
+    if (result && result.success) {
       toast({
-        title: `Producto ${product ? 'actualizado' : 'añadido'} con éxito`,
+        title: `Producto ${data.id ? 'actualizado' : 'añadido'} con éxito`,
         description: `El producto "${data.code}" ha sido guardado.`,
       });
       setIsOpen(false);
@@ -90,7 +99,7 @@ export function ProductDialog({ isOpen, setIsOpen, product }: ProductDialogProps
       toast({
         variant: 'destructive',
         title: 'Ocurrió un error',
-        description: result.error || 'Por favor, revisa el formulario e inténtalo de nuevo.',
+        description: result?.error || 'Por favor, revisa el formulario e inténtalo de nuevo.',
       });
     }
   };
@@ -106,7 +115,8 @@ export function ProductDialog({ isOpen, setIsOpen, product }: ProductDialogProps
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
-            {product && <input type="hidden" {...form.register('id')} />}
+            {/* El ID se incluye como un campo oculto solo si estamos editando */}
+            {product && form.getValues('id') && <input type="hidden" {...form.register('id')} />}
             <FormField
               control={form.control}
               name="code"

@@ -5,7 +5,8 @@ import { z } from 'zod';
 import { createClient } from '@/lib/supabase/server';
 import type { Product } from '@/lib/types';
 
-// Unificamos el esquema para que sea consistente en ambos lados
+// Unificamos el esquema para que sea consistente en ambos lados.
+// El ID es opcional porque no existe al crear un nuevo producto.
 const productSchema = z.object({
   id: z.string().uuid().optional(),
   code: z.string().min(1, 'El código es obligatorio'),
@@ -16,7 +17,10 @@ const productSchema = z.object({
 });
 
 export async function addProduct(data: unknown) {
-  const validatedFields = productSchema.safeParse(data);
+  // Omitimos el 'id' del schema para la validación de inserción, 
+  // ya que la base de datos lo genera automáticamente.
+  const insertSchema = productSchema.omit({ id: true });
+  const validatedFields = insertSchema.safeParse(data);
 
   if (!validatedFields.success) {
     console.error('Error de validación al añadir producto:', validatedFields.error.flatten().fieldErrors);
@@ -26,7 +30,7 @@ export async function addProduct(data: unknown) {
   }
   
   const supabase = createClient();
-  const { id, ...productData } = validatedFields.data;
+  const productData = validatedFields.data;
   
   console.log('Intentando añadir producto con datos:', productData);
 
@@ -43,23 +47,23 @@ export async function addProduct(data: unknown) {
   return { success: true };
 }
 
-export async function updateProduct(data: unknown) {
-    const formValidation = productSchema.safeParse(data);
+export async function updateProduct(data: { id?: string; [key: string]: any }) {
+    // Para la actualización, el ID es obligatorio.
+    const updateSchema = productSchema.extend({
+        id: z.string().uuid('El ID del producto no es válido.'),
+    });
 
-    if (!formValidation.success) {
-        console.error('Error de validación al actualizar:', formValidation.error.flatten().fieldErrors);
+    const validatedFields = updateSchema.safeParse(data);
+
+    if (!validatedFields.success) {
+        console.error('Error de validación al actualizar:', validatedFields.error.flatten().fieldErrors);
         return {
-            errors: formValidation.error.flatten().fieldErrors,
+            errors: validatedFields.error.flatten().fieldErrors,
             message: 'Datos del formulario inválidos.'
         };
     }
 
-    const { id, ...productData } = formValidation.data;
-
-    if (!id) {
-        console.error('Error crítico: Falta el ID del producto para actualizar.');
-        return { error: 'Falta el ID del producto para actualizar.' };
-    }
+    const { id, ...productData } = validatedFields.data;
     
     console.log(`Intentando actualizar producto ID: ${id} con datos:`, productData);
 
@@ -121,27 +125,25 @@ export async function updateInventoryFromCSV(data: unknown) {
 
   console.log(`Iniciando actualización masiva de inventario para ${productsToUpdate.length} productos.`);
 
-  // La operación `upsert` con `onConflict` requiere que la columna 'code' tenga una restricción UNIQUE.
-  // Si no la tiene, la base de datos devuelve un error.
-  // Como alternativa, podemos realizar una serie de actualizaciones individuales.
-  // Esto es menos performante para grandes volúmenes, pero no requiere cambios en el esquema de la BD.
-
   const errors: { code: string; message: string }[] = [];
   
   for (const product of productsToUpdate) {
+    // Usamos `eq` para encontrar el producto por su código y actualizar la cantidad.
     const { error } = await supabase
       .from('productos')
       .update({ quantity: product.quantity })
       .eq('code', product.code);
 
     if (error) {
-      console.error(`Error actualizando el producto con código ${product.code}:`, error.message);
+      const errorMessage = `Error actualizando el producto con código ${product.code}: ${error.message}`;
+      console.error(errorMessage);
       errors.push({ code: product.code, message: error.message });
     }
   }
 
   if (errors.length > 0) {
     const errorMessage = `Ocurrieron errores al actualizar ${errors.length} producto(s). Revisa la consola del servidor para más detalles.`;
+    console.error("Errores en actualización masiva:", errors);
     return { error: errorMessage };
   }
   
