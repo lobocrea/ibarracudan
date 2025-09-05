@@ -7,16 +7,15 @@ import type { OrderItem } from '@/lib/types';
 
 const orderItemSchema = z.object({
   producto_id: z.string().uuid(),
-  quantity: z.coerce.number().int().min(1, "La cantidad debe ser al menos 1"),
+  quantity: z.coerce.number().int().min(1, 'La cantidad debe ser al menos 1'),
 });
 
 const createOrderSchema = z.object({
   clientName: z.string().min(1, 'El nombre del cliente es obligatorio'),
-  items: z.array(orderItemSchema).min(1, "El pedido debe tener al menos un producto"),
+  items: z.array(orderItemSchema).min(1, 'El pedido debe tener al menos un producto'),
 });
 
-
-export async function createOrder(data: { clientName: string, items: Omit<OrderItem, 'code' | 'sellPrice' | 'stock'>[]}) {
+export async function createOrder(data: { clientName: string; items: OrderItem[] }) {
   const validatedFields = createOrderSchema.safeParse(data);
 
   if (!validatedFields.success) {
@@ -27,8 +26,8 @@ export async function createOrder(data: { clientName: string, items: Omit<OrderI
 
   const { clientName, items } = validatedFields.data;
   const supabase = createClient();
-  
-  // The 'handle_new_order' function now expects a JSONB object for order_items
+
+  // The 'handle_new_order' function expects a JSONB object for order_items
   const { error } = await supabase.rpc('handle_new_order', {
     client_name: clientName,
     order_items: items,

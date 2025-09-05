@@ -37,7 +37,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 const orderItemSchema = z.object({
   producto_id: z.string().uuid("Selecciona un producto válido."),
   quantity: z.coerce.number().int().min(1, "Mínimo 1"),
-  sell_price: z.coerce.number(),
+  // These two are for client-side display and calculation only
+  sell_price: z.coerce.number(), 
   stock: z.coerce.number(),
 });
 
@@ -182,7 +183,7 @@ export function CreateOrderDialog({ isOpen, setIsOpen, inventory }: CreateOrderD
                                         </FormControl>
                                         <SelectContent>
                                             {availableProducts.map(p => (
-                                                <SelectItem key={p.id} value={p.id} disabled={selectedProductIds.includes(p.id) && p.id !== field.producto_id}>
+                                                <SelectItem key={p.id} value={p.id} disabled={selectedProductIds.includes(p.id) && p.id !== currentProductInForm.producto_id}>
                                                     {p.code} (Disp: {p.quantity}) - {p.sell_price.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}
                                                 </SelectItem>
                                             ))}
@@ -215,7 +216,7 @@ export function CreateOrderDialog({ isOpen, setIsOpen, inventory }: CreateOrderD
                         })}
                         </div>
                          {form.formState.errors.items && (
-                             <p className="text-sm font-medium text-destructive mt-2">{form.formState.errors.items.message}</p>
+                             <p className="text-sm font-medium text-destructive mt-2">{form.formState.errors.items.message as string}</p>
                         )}
                     </div>
                     

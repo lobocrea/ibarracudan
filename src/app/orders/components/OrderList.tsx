@@ -57,6 +57,11 @@ export function OrderList({ orders, inventory }: { orders: Order[], inventory: P
     setDetailsDialogOpen(true);
   }
 
+  const getOrderIdSuffix = (orderId: string) => {
+      // Show last 6 chars of uuid for brevity
+      return orderId.slice(-6);
+  }
+
   return (
     <>
       <Card>
@@ -90,7 +95,7 @@ export function OrderList({ orders, inventory }: { orders: Order[], inventory: P
               {orders.length > 0 ? (
                 orders.map((order) => (
                   <TableRow key={order.id}>
-                    <TableCell className="font-medium">#{order.id}</TableCell>
+                    <TableCell className="font-medium">#{getOrderIdSuffix(order.id)}</TableCell>
                     <TableCell>{order.client_name}</TableCell>
                     <TableCell>{formatDate(order.created_at)}</TableCell>
                     <TableCell>
@@ -134,7 +139,7 @@ export function OrderList({ orders, inventory }: { orders: Order[], inventory: P
         <Dialog open={detailsDialogOpen} onOpenChange={setDetailsDialogOpen}>
           <DialogContent className="max-w-2xl">
             <DialogHeader>
-              <DialogTitle>Detalles del Pedido #{selectedOrder.id}</DialogTitle>
+              <DialogTitle>Detalles del Pedido #{getOrderIdSuffix(selectedOrder.id)}</DialogTitle>
               <DialogDescription>
                 <p>Cliente: {selectedOrder.client_name}</p>
                 <p>Fecha: {formatDate(selectedOrder.created_at)}</p>

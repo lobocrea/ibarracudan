@@ -13,7 +13,7 @@ export type OrderItem = {
 };
 
 export type Order = {
-  id: number; // bigint
+  id: string; // uuid
   created_at: string;
   client_name: string | null;
   total: number | null;
@@ -22,13 +22,13 @@ export type Order = {
 };
 
 export type OrderItemDetail = {
-  id: number;
-  pedido_id: number;
-  producto_id: string;
+  id: string; // uuid
+  pedido_id: string; // uuid
+  producto_id: string; // uuid
   quantity: number;
   sell_price: number;
   productos: {
     code: string;
     tipo: string | null;
-  }
-}
+  };
+};
