@@ -6,13 +6,19 @@ import { LogOut, Package, LayoutDashboard, ShoppingCart } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import type { User } from '@supabase/supabase-js';
+import * as React from 'react';
 
 type HeaderProps = {
   user: User;
 };
 
 export function Header({ user }: HeaderProps) {
-  const pathname = usePathname();
+  const currentPath = usePathname();
+  const [activePath, setActivePath] = React.useState(currentPath);
+
+  React.useEffect(() => {
+    setActivePath(currentPath);
+  }, [currentPath]);
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-4 border-b bg-card px-4 sm:px-6">
@@ -22,13 +28,13 @@ export function Header({ user }: HeaderProps) {
             <h1 className="text-xl font-bold text-foreground">Ibarracudán</h1>
         </div>
         <nav className="hidden items-center gap-4 text-sm font-medium md:flex">
-          <Link href="/dashboard" className={cn("transition-colors hover:text-foreground", pathname === '/dashboard' ? 'text-foreground' : 'text-muted-foreground')}>
+          <Link href="/dashboard" className={cn("transition-colors hover:text-foreground", activePath === '/dashboard' ? 'text-foreground' : 'text-muted-foreground')}>
               Dashboard
           </Link>
-          <Link href="/inventory" className={cn("transition-colors hover:text-foreground", pathname === '/inventory' ? 'text-foreground' : 'text-muted-foreground')}>
+          <Link href="/inventory" className={cn("transition-colors hover:text-foreground", activePath === '/inventory' ? 'text-foreground' : 'text-muted-foreground')}>
               Inventario
           </Link>
-          <Link href="/orders" className={cn("transition-colors hover:text-foreground", pathname === '/orders' ? 'text-foreground' : 'text-muted-foreground')}>
+          <Link href="/orders" className={cn("transition-colors hover:text-foreground", activePath === '/orders' ? 'text-foreground' : 'text-muted-foreground')}>
               Pedidos
           </Link>
         </nav>
