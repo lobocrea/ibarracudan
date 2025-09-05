@@ -29,10 +29,20 @@ import { CreateOrderDialog } from './CreateOrderDialog';
 import type { Order, Product } from '@/lib/types';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter
+} from '@/components/ui/dialog';
 
 
 export function OrderList({ orders, inventory }: { orders: Order[], inventory: Product[] }) {
-  const [dialogOpen, setDialogOpen] = React.useState(false);
+  const [createDialogOpen, setCreateDialogOpen] = React.useState(false);
+  const [detailsDialogOpen, setDetailsDialogOpen] = React.useState(false);
+  const [selectedOrder, setSelectedOrder] = React.useState<Order | null>(null);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(amount);
@@ -41,6 +51,11 @@ export function OrderList({ orders, inventory }: { orders: Order[], inventory: P
   const formatDate = (dateString: string) => {
     return format(new Date(dateString), "dd MMM, yyyy 'a las' HH:mm", { locale: es });
   };
+
+  const handleViewDetails = (order: Order) => {
+    setSelectedOrder(order);
+    setDetailsDialogOpen(true);
+  }
 
   return (
     <>
@@ -51,7 +66,7 @@ export function OrderList({ orders, inventory }: { orders: Order[], inventory: P
               <CardTitle>Pedidos</CardTitle>
               <CardDescription>Consulta y gestiona los pedidos de tus clientes.</CardDescription>
             </div>
-            <Button onClick={() => setDialogOpen(true)} disabled={inventory.filter(p => p.quantity > 0).length === 0}>
+            <Button onClick={() => setCreateDialogOpen(true)} disabled={inventory.filter(p => p.quantity > 0).length === 0}>
               <PlusCircle className="mr-2 h-4 w-4" />
               Crear Pedido
             </Button>
@@ -91,7 +106,7 @@ export function OrderList({ orders, inventory }: { orders: Order[], inventory: P
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem>Ver Detalles</DropdownMenuItem>
+                          <DropdownMenuItem onSelect={() => handleViewDetails(order)}>Ver Detalles</DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
@@ -110,10 +125,53 @@ export function OrderList({ orders, inventory }: { orders: Order[], inventory: P
       </Card>
       
       <CreateOrderDialog 
-        isOpen={dialogOpen} 
-        setIsOpen={setDialogOpen} 
+        isOpen={createDialogOpen} 
+        setIsOpen={setCreateDialogOpen} 
         inventory={inventory}
       />
+
+      {selectedOrder && (
+        <Dialog open={detailsDialogOpen} onOpenChange={setDetailsDialogOpen}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Detalles del Pedido #{selectedOrder.id}</DialogTitle>
+              <DialogDescription>
+                <p>Cliente: {selectedOrder.client_name}</p>
+                <p>Fecha: {formatDate(selectedOrder.created_at)}</p>
+              </DialogDescription>
+            </DialogHeader>
+            <div className="my-4">
+              <h3 className="font-semibold mb-2">Productos</h3>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Código</TableHead>
+                    <TableHead>Tipo</TableHead>
+                    <TableHead>Cantidad</TableHead>
+                    <TableHead className="text-right">Precio</TableHead>
+                    <TableHead className="text-right">Subtotal</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {selectedOrder.items_pedido.map(item => (
+                    <TableRow key={item.id}>
+                      <TableCell>{item.productos.code}</TableCell>
+                      <TableCell>{item.productos.tipo}</TableCell>
+                      <TableCell>{item.quantity}</TableCell>
+                      <TableCell className="text-right">{formatCurrency(item.sell_price)}</TableCell>
+                      <TableCell className="text-right">{formatCurrency(item.quantity * item.sell_price)}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+            <DialogFooter className="sm:justify-between items-center border-t pt-4">
+               <div className="text-lg font-bold">Total: {formatCurrency(selectedOrder.total || 0)}</div>
+               <Button variant="outline" onClick={() => setDetailsDialogOpen(false)}>Cerrar</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
     </>
   );
 }
