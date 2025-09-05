@@ -23,6 +23,5 @@ export async function authenticate(
     return 'Email o contraseña inválidos.';
   }
   
-  revalidatePath('/');
   redirect('/inventory');
 }
