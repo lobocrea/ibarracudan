@@ -41,33 +41,41 @@ export async function addProduct(data: unknown) {
 }
 
 export async function updateProduct(data: unknown) {
-  const validatedFields = productSchema.safeParse(data);
+    // Primero, validamos la estructura general de los datos que vienen del formulario.
+    const formValidation = productSchema.safeParse(data);
 
-  if (!validatedFields.success) {
-    return {
-      errors: validatedFields.error.flatten().fieldErrors,
-    };
-  }
-  
-  const { id, ...productData } = validatedFields.data;
+    if (!formValidation.success) {
+        return {
+            errors: formValidation.error.flatten().fieldErrors,
+        };
+    }
 
-  if (!id) {
-    return { error: 'Falta el ID del producto para actualizar.' };
-  }
+    // El ID viene del formulario y es crucial para la cláusula WHERE.
+    const { id } = formValidation.data;
 
-  const supabase = createClient();
-  // Usamos el 'id' para la condición 'eq' y 'productData' para los valores a actualizar
-  const { error } = await supabase.from('productos').update(productData).eq('id', id);
+    if (!id) {
+        return { error: 'Falta el ID del producto para actualizar.' };
+    }
 
-  if (error) {
-    console.error('Update error:', error);
-    return { error: `Error al actualizar producto: ${error.message}` };
-  }
+    // Preparamos los datos para la actualización, excluyendo el ID del payload.
+    const { id: _, ...productData } = formValidation.data;
 
-  revalidatePath('/inventory');
-  revalidatePath('/dashboard');
-  return { success: true };
+    const supabase = createClient();
+    const { error } = await supabase
+        .from('productos')
+        .update(productData) // El objeto a actualizar no debe contener el ID.
+        .eq('id', id);      // El ID se usa aquí para identificar la fila.
+
+    if (error) {
+        console.error('Update error:', error);
+        return { error: `Error al actualizar producto: ${error.message}` };
+    }
+
+    revalidatePath('/inventory');
+    revalidatePath('/dashboard');
+    return { success: true };
 }
+
 
 export async function deleteProduct(productId: string) {
   if (!productId) {
