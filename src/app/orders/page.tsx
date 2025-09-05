@@ -11,7 +11,7 @@ import { redirect } from 'next/navigation';
 import type { Order, Product } from '@/lib/types';
 
 export default async function OrdersPage() {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {

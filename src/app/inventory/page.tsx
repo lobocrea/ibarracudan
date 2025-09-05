@@ -4,7 +4,7 @@ import { Header } from './components/Header';
 import { redirect } from 'next/navigation';
 
 export default async function InventoryPage() {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {

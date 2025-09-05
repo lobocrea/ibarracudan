@@ -5,7 +5,7 @@ import type { Order } from '@/lib/types';
 import { Invoice } from './components/Invoice';
 
 async function getOrder(id: string): Promise<Order | null> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data: order, error } = await supabase
     .from('pedidos')
     .select('*, items_pedido(*, productos(*))')
@@ -22,7 +22,7 @@ async function getOrder(id: string): Promise<Order | null> {
 
 
 export default async function InvoicePage({ params }: { params: { id: string } }) {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {

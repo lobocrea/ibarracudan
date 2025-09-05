@@ -22,7 +22,7 @@ import type { Product, Order } from '@/lib/types';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 
 async function getDashboardData() {
-    const supabase = createClient();
+    const supabase = await createClient();
 
     const productsPromise = supabase.from('productos').select('*');
     const lowStockProductsPromise = supabase.from('productos').select('*').lt('quantity', 10);
@@ -76,7 +76,7 @@ async function getDashboardData() {
 
 
 export default async function DashboardPage() {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {

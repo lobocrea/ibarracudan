@@ -29,7 +29,7 @@ export async function addProduct(data: unknown) {
     };
   }
   
-  const supabase = createClient();
+  const supabase = await createClient();
   const productData = validatedFields.data;
   
   console.log('Intentando añadir producto con datos:', productData);
@@ -67,7 +67,7 @@ export async function updateProduct(data: { id?: string; [key: string]: any }) {
     
     console.log(`Intentando actualizar producto ID: ${id} con datos:`, productData);
 
-    const supabase = createClient();
+    const supabase = await createClient();
     const { error } = await supabase
         .from('productos')
         .update(productData)
@@ -92,7 +92,7 @@ export async function deleteProduct(productId: string) {
   }
   
   console.log(`Intentando eliminar producto ID: ${productId}`);
-  const supabase = createClient();
+  const supabase = await createClient();
   const { error } = await supabase.from('productos').delete().eq('id', productId);
   
   if (error) {
@@ -120,7 +120,7 @@ export async function updateInventoryFromCSV(data: unknown) {
     return { error: 'El formato de los datos del CSV es inválido.' };
   }
   
-  const supabase = createClient();
+  const supabase = await createClient();
   const productsToUpdate = validation.data;
 
   console.log(`Iniciando actualización masiva de inventario para ${productsToUpdate.length} productos.`);
