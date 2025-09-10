@@ -55,10 +55,12 @@ export function UpdateInventoryDialog({ isOpen, setIsOpen }: UpdateInventoryDial
     Papa.parse(file, {
       header: true,
       skipEmptyLines: true,
+      transformHeader: header => header.trim(),
       complete: async (results) => {
         const parsedData = z.array(csvRowSchema).safeParse(results.data);
         
         if (!parsedData.success) {
+            console.error("Error de validación de CSV:", parsedData.error.flatten());
             toast({
                 variant: 'destructive',
                 title: 'Error en el formato del archivo CSV',
