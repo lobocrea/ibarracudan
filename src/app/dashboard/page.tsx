@@ -17,7 +17,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { AlertCircle, ArrowDown, ArrowUp, Euro, Package } from 'lucide-react';
+import { AlertCircle, ArrowDown, ArrowUp, DollarSign, Package } from 'lucide-react';
 import type { Product, Order } from '@/lib/types';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 
@@ -89,7 +89,7 @@ export default async function DashboardPage() {
   const inventoryValue = products.reduce((sum, product) => sum + (product.buy_price * product.quantity), 0);
   
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(amount);
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
   };
   
   const getProductById = (id: string) => products.find(p => p.id === id);
@@ -114,7 +114,7 @@ export default async function DashboardPage() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Ingresos Totales</CardTitle>
-              <Euro className="text-muted-foreground h-4 w-4" />
+              <DollarSign className="text-muted-foreground h-4 w-4" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{formatCurrency(totalRevenue)}</div>

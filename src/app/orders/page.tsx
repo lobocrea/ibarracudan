@@ -49,11 +49,11 @@ export default async function OrdersPage() {
               <CardTitle className="text-sm font-medium">
                 Ingresos Totales
               </CardTitle>
-              <span className="text-muted-foreground text-2xl">€</span>
+              <span className="text-muted-foreground text-2xl">$</span>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {totalRevenue.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}
+                {totalRevenue.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}
               </div>
               <p className="text-xs text-muted-foreground">
                 Ingresos totales de todos los pedidos

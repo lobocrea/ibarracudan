@@ -10,7 +10,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { MoreHorizontal, PlusCircle, Upload } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, Upload, Download } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -28,6 +28,7 @@ import { ProductDialog } from './ProductDialog';
 import { DeleteProductDialog } from './DeleteProductDialog';
 import { UpdateInventoryDialog } from './UpdateInventoryDialog';
 import type { Product } from '@/lib/types';
+import Papa from 'papaparse';
 
 export function ProductTable({ products }: { products: Product[] }) {
   const [dialogOpen, setDialogOpen] = React.useState(false);
@@ -55,8 +56,29 @@ export function ProductTable({ products }: { products: Product[] }) {
   };
   
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(amount);
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
   };
+
+  const handleExport = () => {
+    const csv = Papa.unparse(products.map(p => ({
+        code: p.code,
+        tipo: p.tipo,
+        quantity: p.quantity,
+        buy_price: p.buy_price,
+        sell_price: p.sell_price,
+    })));
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    if (link.download !== undefined) {
+        const url = URL.createObjectURL(blob);
+        link.setAttribute("href", url);
+        link.setAttribute("download", `inventario_${new Date().toISOString().split('T')[0]}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+  }
 
   return (
     <>
@@ -71,6 +93,10 @@ export function ProductTable({ products }: { products: Product[] }) {
               <Button onClick={handleOpenUpdateInventoryDialog} variant="outline">
                 <Upload className="mr-2 h-4 w-4" />
                 Importar CSV
+              </Button>
+               <Button onClick={handleExport} variant="outline">
+                <Download className="mr-2 h-4 w-4" />
+                Exportar a CSV
               </Button>
               <Button onClick={handleAddNew}>
                 <PlusCircle className="mr-2 h-4 w-4" />

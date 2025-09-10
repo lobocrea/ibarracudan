@@ -261,7 +261,7 @@ export function CreateOrderDialog({ isOpen, setIsOpen, inventory }: CreateOrderD
                                         <SelectContent>
                                             {availableProducts.map(p => (
                                                 <SelectItem key={p.id} value={p.id} disabled={selectedProductIds.includes(p.id) && p.id !== currentProductInForm.producto_id}>
-                                                    {p.code} (Disp: {p.quantity}) - {p.sell_price.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}
+                                                    {p.code} (Disp: {p.quantity}) - {p.sell_price.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}
                                                 </SelectItem>
                                             ))}
                                         </SelectContent>
@@ -305,7 +305,7 @@ export function CreateOrderDialog({ isOpen, setIsOpen, inventory }: CreateOrderD
             </ScrollArea>
             <DialogFooter className="pt-6 border-t flex-col sm:flex-row sm:justify-between items-center">
                 <div className="text-xl font-bold">
-                    Total: {total.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}
+                    Total: {total.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}
                 </div>
                 <div className="flex gap-2">
                     <Button type="button" variant="ghost" onClick={() => setIsOpen(false)}>Cancelar</Button>

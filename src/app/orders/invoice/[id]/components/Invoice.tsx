@@ -17,7 +17,7 @@ export function Invoice({ order }: InvoiceProps) {
     }, []);
 
     const formatCurrency = (amount: number) => {
-        return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(amount);
+        return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
     };
     
     const formatDate = (dateString: string) => {
