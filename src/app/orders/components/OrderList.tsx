@@ -10,7 +10,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, MoreHorizontal, Printer } from 'lucide-react';
+import { PlusCircle, MoreHorizontal, Printer, Plus } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -38,12 +38,14 @@ import {
   DialogFooter
 } from '@/components/ui/dialog';
 import Link from 'next/link';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 
 export function OrderList({ orders, inventory }: { orders: Order[], inventory: Product[] }) {
   const [createDialogOpen, setCreateDialogOpen] = React.useState(false);
   const [detailsDialogOpen, setDetailsDialogOpen] = React.useState(false);
   const [selectedOrder, setSelectedOrder] = React.useState<Order | null>(null);
+  const isMobile = useIsMobile();
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
@@ -63,6 +65,10 @@ export function OrderList({ orders, inventory }: { orders: Order[], inventory: P
       return orderId.slice(-6);
   }
 
+  const handleCreateOrder = () => {
+    setCreateDialogOpen(true);
+  }
+
   return (
     <>
       <Card>
@@ -72,78 +78,90 @@ export function OrderList({ orders, inventory }: { orders: Order[], inventory: P
               <CardTitle>Pedidos</CardTitle>
               <CardDescription>Consulta y gestiona los pedidos de tus clientes.</CardDescription>
             </div>
-            <Button onClick={() => setCreateDialogOpen(true)} disabled={inventory.filter(p => p.quantity > 0).length === 0}>
-              <PlusCircle className="mr-2 h-4 w-4" />
-              Crear Pedido
-            </Button>
+            {!isMobile && (
+              <Button onClick={handleCreateOrder} disabled={inventory.filter(p => p.quantity > 0).length === 0}>
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Crear Pedido
+              </Button>
+            )}
           </div>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>ID Pedido</TableHead>
-                <TableHead>Cliente</TableHead>
-                <TableHead>Fecha</TableHead>
-                <TableHead>Método de Pago</TableHead>
-                <TableHead>Nº de Productos</TableHead>
-                <TableHead className="text-right">Total</TableHead>
-                <TableHead>
-                  <span className="sr-only">Acciones</span>
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {orders.length > 0 ? (
-                orders.map((order) => (
-                  <TableRow key={order.id}>
-                    <TableCell className="font-medium">#{getOrderIdSuffix(order.id)}</TableCell>
-                    <TableCell>{order.client_name}</TableCell>
-                    <TableCell>{formatDate(order.created_at)}</TableCell>
-                    <TableCell>
-                      {order.payment_method ? (
-                        <Badge variant="secondary" className="capitalize">{order.payment_method}</Badge>
-                      ) : (
-                        <span className="text-muted-foreground">-</span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                        <Badge variant="outline">{order.items_pedido.length} producto(s)</Badge>
-                    </TableCell>
-                    <TableCell className="text-right">{formatCurrency(order.total || 0)}</TableCell>
-                    <TableCell>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button aria-haspopup="true" size="icon" variant="ghost">
-                            <MoreHorizontal className="h-4 w-4" />
-                            <span className="sr-only">Alternar menú</span>
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onSelect={() => handleViewDetails(order)}>Ver Detalles</DropdownMenuItem>
-                          <DropdownMenuItem asChild>
-                            <Link href={`/orders/invoice/${order.id}`} target="_blank">
-                               <Printer className="mr-2 h-4 w-4" />
-                               Generar Nota
-                            </Link>
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>ID Pedido</TableHead>
+                  <TableHead>Cliente</TableHead>
+                  <TableHead>Fecha</TableHead>
+                  <TableHead>Método de Pago</TableHead>
+                  <TableHead>Nº de Productos</TableHead>
+                  <TableHead className="text-right">Total</TableHead>
+                  <TableHead>
+                    <span className="sr-only">Acciones</span>
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {orders.length > 0 ? (
+                  orders.map((order) => (
+                    <TableRow key={order.id}>
+                      <TableCell className="font-medium">#{getOrderIdSuffix(order.id)}</TableCell>
+                      <TableCell>{order.client_name}</TableCell>
+                      <TableCell>{formatDate(order.created_at)}</TableCell>
+                      <TableCell>
+                        {order.payment_method ? (
+                          <Badge variant="secondary" className="capitalize">{order.payment_method}</Badge>
+                        ) : (
+                          <span className="text-muted-foreground">-</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                          <Badge variant="outline">{order.items_pedido.length} producto(s)</Badge>
+                      </TableCell>
+                      <TableCell className="text-right">{formatCurrency(order.total || 0)}</TableCell>
+                      <TableCell>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button aria-haspopup="true" size="icon" variant="ghost">
+                              <MoreHorizontal className="h-4 w-4" />
+                              <span className="sr-only">Alternar menú</span>
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onSelect={() => handleViewDetails(order)}>Ver Detalles</DropdownMenuItem>
+                            <DropdownMenuItem asChild>
+                              <Link href={`/orders/invoice/${order.id}`} target="_blank">
+                                <Printer className="mr-2 h-4 w-4" />
+                                Generar Nota
+                              </Link>
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={7} className="h-24 text-center">
+                      No se encontraron pedidos. Crea uno nuevo para empezar.
                     </TableCell>
                   </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={7} className="h-24 text-center">
-                    No se encontraron pedidos. Crea uno nuevo para empezar.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
+                )}
+              </TableBody>
+            </Table>
+          </div>
         </CardContent>
       </Card>
       
+      {isMobile && (
+         <div className="fixed bottom-4 right-4 z-40">
+           <Button size="icon" className="rounded-full h-14 w-14 shadow-lg" onClick={handleCreateOrder}>
+                <Plus className="h-6 w-6" />
+            </Button>
+         </div>
+      )}
+
       <CreateOrderDialog 
         isOpen={createDialogOpen} 
         setIsOpen={setCreateDialogOpen} 
@@ -156,7 +174,7 @@ export function OrderList({ orders, inventory }: { orders: Order[], inventory: P
             <DialogHeader>
               <DialogTitle>Detalles del Pedido #{getOrderIdSuffix(selectedOrder.id)}</DialogTitle>
               <DialogDescription>
-                 <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1">
                     <div className="font-semibold">{selectedOrder.client_name}</div>
                     <div className="capitalize">
                       <span className="font-semibold">Pago:</span> {selectedOrder.payment_method || 'No especificado'}
@@ -167,7 +185,7 @@ export function OrderList({ orders, inventory }: { orders: Order[], inventory: P
                  </div>
               </DialogDescription>
             </DialogHeader>
-            <div className="my-4">
+            <div className="my-4 overflow-x-auto">
               <h3 className="font-semibold mb-2">Productos</h3>
               <Table>
                 <TableHeader>
@@ -192,7 +210,7 @@ export function OrderList({ orders, inventory }: { orders: Order[], inventory: P
                 </TableBody>
               </Table>
             </div>
-            <DialogFooter className="sm:justify-between items-center border-t pt-4">
+            <DialogFooter className="sm:justify-between items-center border-t pt-4 flex-col-reverse sm:flex-row gap-2">
                <div className="text-lg font-bold">Total: {formatCurrency(selectedOrder.total || 0)}</div>
                <Button variant="outline" onClick={() => setDetailsDialogOpen(false)}>Cerrar</Button>
             </DialogFooter>

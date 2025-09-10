@@ -160,26 +160,28 @@ export default async function DashboardPage() {
                     <CardDescription>Estos productos necesitan ser reabastecidos pronto.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Producto</TableHead>
-                                <TableHead className="text-right">Stock Actual</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {lowStockProducts.length > 0 ? lowStockProducts.map(p => (
-                                <TableRow key={p.id}>
-                                    <TableCell>{p.code}</TableCell>
-                                    <TableCell className="text-right"><Badge variant="destructive">{p.quantity}</Badge></TableCell>
-                                </TableRow>
-                            )) : (
-                                <TableRow>
-                                    <TableCell colSpan={2} className="h-24 text-center">¡Buen trabajo! No hay productos con stock bajo.</TableCell>
-                                </TableRow>
-                            )}
-                        </TableBody>
-                    </Table>
+                  <div className="overflow-x-auto">
+                      <Table>
+                          <TableHeader>
+                              <TableRow>
+                                  <TableHead>Producto</TableHead>
+                                  <TableHead className="text-right">Stock Actual</TableHead>
+                              </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                              {lowStockProducts.length > 0 ? lowStockProducts.map(p => (
+                                  <TableRow key={p.id}>
+                                      <TableCell>{p.code}</TableCell>
+                                      <TableCell className="text-right"><Badge variant="destructive">{p.quantity}</Badge></TableCell>
+                                  </TableRow>
+                              )) : (
+                                  <TableRow>
+                                      <TableCell colSpan={2} className="h-24 text-center">¡Buen trabajo! No hay productos con stock bajo.</TableCell>
+                                  </TableRow>
+                              )}
+                          </TableBody>
+                      </Table>
+                    </div>
                 </CardContent>
             </Card>
              <Card>
@@ -188,35 +190,37 @@ export default async function DashboardPage() {
                     <CardDescription>Los últimos 5 productos vendidos.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Producto</TableHead>
-                                <TableHead className="text-right">Cantidad Vendida</TableHead>
-                                <TableHead className="text-right">Stock Restante</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                             {recentSales.length > 0 ? recentSales.map((item, index) => {
-                                const product = getProductById(item.productId);
-                                return product ? (
-                                    <TableRow key={`${item.productId}-${index}`}>
-                                        <TableCell>{item.productCode}</TableCell>
-                                        <TableCell className="text-right">{item.quantitySold}</TableCell>
-                                        <TableCell className="text-right">
-                                            <Badge variant={product.quantity < 10 ? 'destructive' : 'outline'}>
-                                                {product.quantity}
-                                            </Badge>
-                                        </TableCell>
-                                    </TableRow>
-                                ) : null;
-                             }) : (
-                                <TableRow>
-                                    <TableCell colSpan={3} className="h-24 text-center">No hay ventas recientes.</TableCell>
-                                </TableRow>
-                             )}
-                        </TableBody>
-                    </Table>
+                    <div className="overflow-x-auto">
+                      <Table>
+                          <TableHeader>
+                              <TableRow>
+                                  <TableHead>Producto</TableHead>
+                                  <TableHead className="text-right">Cantidad Vendida</TableHead>
+                                  <TableHead className="text-right">Stock Restante</TableHead>
+                              </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                              {recentSales.length > 0 ? recentSales.map((item, index) => {
+                                  const product = getProductById(item.productId);
+                                  return product ? (
+                                      <TableRow key={`${item.productId}-${index}`}>
+                                          <TableCell>{item.productCode}</TableCell>
+                                          <TableCell className="text-right">{item.quantitySold}</TableCell>
+                                          <TableCell className="text-right">
+                                              <Badge variant={product.quantity < 10 ? 'destructive' : 'outline'}>
+                                                  {product.quantity}
+                                              </Badge>
+                                          </TableCell>
+                                      </TableRow>
+                                  ) : null;
+                              }) : (
+                                  <TableRow>
+                                      <TableCell colSpan={3} className="h-24 text-center">No hay ventas recientes.</TableCell>
+                                  </TableRow>
+                              )}
+                          </TableBody>
+                      </Table>
+                    </div>
                 </CardContent>
             </Card>
         </div>
