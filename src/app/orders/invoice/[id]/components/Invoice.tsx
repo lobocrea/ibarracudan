@@ -56,12 +56,18 @@ export function Invoice({ order }: InvoiceProps) {
                     </div>
                 </header>
 
-                <div className="mb-10">
-                    <h3 className="text-lg font-semibold border-b pb-2 mb-3">Cliente</h3>
-                    <p className="font-medium text-lg">{order.client_name}</p>
-                    <p className="text-muted-foreground">{order.client_address}</p>
-                    <p className="text-muted-foreground">{order.client_phone}</p>
-                    <p className="text-muted-foreground">{order.client_id_number}</p>
+                <div className="grid grid-cols-2 gap-10 mb-10">
+                    <div>
+                        <h3 className="text-lg font-semibold border-b pb-2 mb-3">Cliente</h3>
+                        <p className="font-medium text-lg">{order.client_name}</p>
+                        <p className="text-muted-foreground">{order.client_address}</p>
+                        <p className="text-muted-foreground">{order.client_phone}</p>
+                        <p className="text-muted-foreground">{order.client_id_number}</p>
+                    </div>
+                     <div>
+                        <h3 className="text-lg font-semibold border-b pb-2 mb-3">Pago</h3>
+                        <p className="font-medium text-lg capitalize">{order.payment_method || 'No especificado'}</p>
+                    </div>
                 </div>
 
                 <div>

@@ -46,6 +46,7 @@ const orderFormSchema = z.object({
   clientAddress: z.string().optional(),
   clientPhone: z.string().optional(),
   clientIdNumber: z.string().optional(),
+  payment_method: z.string().optional(),
   items: z.array(orderItemSchema).min(1, "Añade al menos un producto."),
 });
 
@@ -66,6 +67,7 @@ export function CreateOrderDialog({ isOpen, setIsOpen, inventory }: CreateOrderD
       clientAddress: '',
       clientPhone: '',
       clientIdNumber: '',
+      payment_method: '',
       items: [],
     },
   });
@@ -90,6 +92,7 @@ export function CreateOrderDialog({ isOpen, setIsOpen, inventory }: CreateOrderD
         clientAddress: data.clientAddress,
         clientPhone: data.clientPhone,
         clientIdNumber: data.clientIdNumber,
+        payment_method: data.payment_method,
         items: orderItems 
     });
 
@@ -198,6 +201,29 @@ export function CreateOrderDialog({ isOpen, setIsOpen, inventory }: CreateOrderD
                         )}
                       />
                     </div>
+
+                    <FormField
+                        control={form.control}
+                        name="payment_method"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Método de Pago</FormLabel>
+                             <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Selecciona un método de pago" />
+                                </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                    <SelectItem value="efectivo">Efectivo</SelectItem>
+                                    <SelectItem value="zelle">Zelle</SelectItem>
+                                    <SelectItem value="bs">Bs</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                    />
                     
                     <div>
                         <FormLabel>Productos</FormLabel>

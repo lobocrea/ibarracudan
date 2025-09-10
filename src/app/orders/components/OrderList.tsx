@@ -85,6 +85,7 @@ export function OrderList({ orders, inventory }: { orders: Order[], inventory: P
                 <TableHead>ID Pedido</TableHead>
                 <TableHead>Cliente</TableHead>
                 <TableHead>Fecha</TableHead>
+                <TableHead>Método de Pago</TableHead>
                 <TableHead>Nº de Productos</TableHead>
                 <TableHead className="text-right">Total</TableHead>
                 <TableHead>
@@ -99,6 +100,13 @@ export function OrderList({ orders, inventory }: { orders: Order[], inventory: P
                     <TableCell className="font-medium">#{getOrderIdSuffix(order.id)}</TableCell>
                     <TableCell>{order.client_name}</TableCell>
                     <TableCell>{formatDate(order.created_at)}</TableCell>
+                    <TableCell>
+                      {order.payment_method ? (
+                        <Badge variant="secondary" className="capitalize">{order.payment_method}</Badge>
+                      ) : (
+                        <span className="text-muted-foreground">-</span>
+                      )}
+                    </TableCell>
                     <TableCell>
                         <Badge variant="outline">{order.items_pedido.length} producto(s)</Badge>
                     </TableCell>
@@ -126,7 +134,7 @@ export function OrderList({ orders, inventory }: { orders: Order[], inventory: P
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={6} className="h-24 text-center">
+                  <TableCell colSpan={7} className="h-24 text-center">
                     No se encontraron pedidos. Crea uno nuevo para empezar.
                   </TableCell>
                 </TableRow>
@@ -148,10 +156,15 @@ export function OrderList({ orders, inventory }: { orders: Order[], inventory: P
             <DialogHeader>
               <DialogTitle>Detalles del Pedido #{getOrderIdSuffix(selectedOrder.id)}</DialogTitle>
               <DialogDescription>
-                <div className="font-semibold">{selectedOrder.client_name}</div>
-                <div>{selectedOrder.client_address}</div>
-                <div>{selectedOrder.client_phone} | {selectedOrder.client_id_number}</div>
-                <div>Fecha: {formatDate(selectedOrder.created_at)}</div>
+                 <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+                    <div className="font-semibold">{selectedOrder.client_name}</div>
+                    <div className="capitalize">
+                      <span className="font-semibold">Pago:</span> {selectedOrder.payment_method || 'No especificado'}
+                    </div>
+                    <div>{selectedOrder.client_address}</div>
+                    <div>{selectedOrder.client_phone} | {selectedOrder.client_id_number}</div>
+                    <div>Fecha: {formatDate(selectedOrder.created_at)}</div>
+                 </div>
               </DialogDescription>
             </DialogHeader>
             <div className="my-4">

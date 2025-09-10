@@ -15,6 +15,7 @@ const createOrderSchema = z.object({
   clientAddress: z.string().optional(),
   clientPhone: z.string().optional(),
   clientIdNumber: z.string().optional(),
+  payment_method: z.string().optional(),
   items: z.array(orderItemSchema).min(1, 'El pedido debe tener al menos un producto'),
 });
 
@@ -23,6 +24,7 @@ export async function createOrder(data: {
   clientAddress?: string;
   clientPhone?: string;
   clientIdNumber?: string;
+  payment_method?: string;
   items: OrderItem[] 
 }) {
   const validatedFields = createOrderSchema.safeParse(data);
@@ -33,7 +35,7 @@ export async function createOrder(data: {
     };
   }
 
-  const { clientName, clientAddress, clientPhone, clientIdNumber, items } = validatedFields.data;
+  const { clientName, clientAddress, clientPhone, clientIdNumber, payment_method, items } = validatedFields.data;
   const supabase = await createClient();
 
   const { error } = await supabase.rpc('handle_new_order', {
@@ -41,6 +43,7 @@ export async function createOrder(data: {
     p_client_address: clientAddress,
     p_client_phone: clientPhone,
     p_client_id_number: clientIdNumber,
+    p_payment_method: payment_method,
     p_order_items: items,
   });
 

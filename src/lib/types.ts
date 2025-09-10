@@ -19,6 +19,7 @@ export type Order = {
   client_address: string | null;
   client_phone: string | null;
   client_id_number: string | null;
+  payment_method: string | null;
   total: number | null;
   user_id: string | null; // uuid
   items_pedido: OrderItemDetail[];
