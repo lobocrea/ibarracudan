@@ -72,7 +72,7 @@ export function UpdateInventoryDialog({ isOpen, setIsOpen }: UpdateInventoryDial
 
         const result = await updateInventoryFromCSV(parsedData.data);
         
-        if (result.success) {
+        if (result && result.success) {
           toast({
             title: 'Inventario actualizado con éxito',
             description: 'Las cantidades de los productos han sido actualizadas.',
